@@ -17,7 +17,7 @@ nextflow.enable.dsl=2
 
 println ''
 println '|------------------------------------------------------------------'
-println "[Info] This is rnaseq_proprocess version ::: $params.version"
+println "[Info] This is rnaseq_preprocess version ::: $params.version"
 println '|------------------------------------------------------------------'
 println ''
 
