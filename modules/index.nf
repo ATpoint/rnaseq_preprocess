@@ -1,4 +1,4 @@
-// Create genome-decoyed index with salmon 
+// Create genome-decoyed index with salmon and a tx2gene mapping table
 
 process SalmonIndex {
 
@@ -11,11 +11,13 @@ process SalmonIndex {
     path(txtome)
     path(genome) 
     val(idxname)
+    path(gtf)
         
     output:
     path("decoynames.txt")
     path("gentrome.fa.gz")
     path(idxname), emit: idx
+    path("tx2gene.txt"), emit: tx2gene
     
     script: 
 
@@ -33,6 +35,10 @@ process SalmonIndex {
         -i $idxname \
         -p $task.cpus \
         $params.additional
+
+    Rscript --vanilla ${baseDir}/src/tx2gene.R \
+        annot.gtf.gz tx2gene.txt $params.transcript_id $params.transcript_name $params.gene_id $params.gene_name $params.gene_type
+
     """                
 
 }

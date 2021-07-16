@@ -1,4 +1,4 @@
-// Create genome-decoyed index with salmon 
+// Trim reads with cutadapt
 
 process Trim {
 

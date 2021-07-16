@@ -1,0 +1,9 @@
+{
+    "salmon_version": "1.5.1",
+    "index": "foo/",
+    "libType": "A",
+    "mates1": "sample1_1.fastq.gz",
+    "mates2": "sample2_2.fastq.gz",
+    "output": "fooi",
+    "auxDir": "aux_info"
+}

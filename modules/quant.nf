@@ -14,7 +14,7 @@ process SalmonQuant {
     path(idx)                         
 
     output:
-    path("${sample_id}"), emit: quants
+    tuple val(sample_id), path(sample_id), emit: quants
     
     script:
 

@@ -8,9 +8,13 @@ A Nextflow pipeline for preprocessing of RNA-seq data
 - create a genome-decoyed index with `salmon`. This requires a reference transcriptome and genome, which can be provided as files from disk or by providing links to a server, e.g. an FTP address.
 Alternatively, the user can directly provide a premade index.
 
-- Optional trimming of the fastq files with `cutadapt`. This is not activated by default, use `--trimming` to turn it on. Default adapter sequence is the TruSeq adapter.
+- trimming of the fastq files with `cutadapt`. This is not activated by default, use `--trimming` to turn it on. Default adapter sequence is the TruSeq adapter.
 
-- Quantification with `salmon` against the created or provided index.
+- quantification with `salmon` against the created or provided index.
+
+- aggregation of the transcript abundance estimates to the gene level with `tximport`
+
+All individual steps can optionally be turned off.
 
 ## Usage
 
@@ -30,7 +34,8 @@ The data are expected to be gzip-compressed with suffix `fastq.gz`.
 - `--quant_libtype`: the [library type flag for salmon](https://salmon.readthedocs.io/en/latest/salmon.html#quantifying-in-alignment-based-mode), by default 'A' for automatic detection.
 Standard stranded libraries, e.g. NEBnext UltraII Directional Prep Kit would be 'ISR' and unstranded libraries are usually 'IU'.
 
-All other options are intuitively named in the `nextflow.config` file.
+All other options are intuitively named in the `nextflow.config` file. Some processes have an `additional` parameter to pass further arguments to the respective tool. If so the first parameter must be escaped to be parsed properly, e.g.:  
+`--quant_additional '\--noLengthCorrection --numGibbsSamples 64'`
 
 For testing there are two profiles, `-profile test_single` and `-profile test_paired` for paired- and single-end data. [Minimal example data](https://github.com/nextflow-io/rnaseq-nf/tree/master/data/ggal) are provided in `./test`,
 which are also used by the GitHub Actions testing.
@@ -45,9 +50,9 @@ For submission via SLURM on a cluster one can use `-profile slurm`. The options 
 
 -  [nf-core project from which much code inspiration was taken from](https://nf-co.re/)
 
--  [Ewels et al (2020) Nature Biotechnology volume 38, pages 276–278](https://www.nature.com/articles/s41587-020-0439-x)
+-  [Ewels et al (2020) The nf-core framework for community-curated bioinformatics pipelines](https://www.nature.com/articles/s41587-020-0439-x)
 
--  [Nextflow Docs](https://www.nextflow.io/docs/latest/index.html#)
+-  [The Nextflow Documentation](https://www.nextflow.io/docs/latest/index.html#)
 
 -  [Seqera Training](https://seqera.io/training/)
 
@@ -58,3 +63,5 @@ For submission via SLURM on a cluster one can use `-profile slurm`. The options 
 -  [Kurtzer et al (2017) Singularity: Scientific containers for mobility of compute. PLoS ONE](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0177459)
 
 -  [Patro et al (2017) Salmon: fast and bias-aware quantification of transcript expression using dual-phase inference](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5600148/)
+
+-  [Soneson et al (2015) Differential analyses for RNA-seq: transcript-level estimates improve gene-level inferences](https://f1000research.com/articles/4-1521/v2)

@@ -1,0 +1,7 @@
+v1.1.0:
+-added tx2gene generation to indexing process
+-added tximport process
+-added skip switch to quant and tximport execution
+
+v1.0.0:
+-initial upload

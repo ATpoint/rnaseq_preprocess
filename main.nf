@@ -45,7 +45,7 @@ workflow RNASEQ {
                                                                             pubmode:    params.publishdir_mode,
                                                                             additional: params.idx_additional)
 
-    SalmonIndex(params.ref_txtome, params.ref_genome, params.idx_name)
+    SalmonIndex(params.ref_txtome, params.ref_genome, params.idx_name, params.ref_gtf)
 
     //-------------------------------------------------------------------------------------------------------------------------------//
     // Trimming
@@ -55,7 +55,7 @@ workflow RNASEQ {
                                                                             pubmode:    params.publishdir_mode,
                                                                             additional: params.trim_additional)
 
-    if(params.trimming) {
+    if(params.trim) {
         Trim(ch_fastq)
         fq = Trim.out.trimmed
     } else fq = ch_fastq
@@ -64,9 +64,10 @@ workflow RNASEQ {
     // Quantification
 
     // we add some defaults for paired-end data if params.quant_additional is empty:
+    q_additional = params.quant_additional
     if(params.quant_additional == '' && params.mode == 'paired'){
         q_additional = '--gcBias --seqBias'
-    } else q_additional = params.quant_additional
+    }
 
     include{    SalmonQuant }       from './modules/quant'      addParams(  threads:    params.quant_threads,
                                                                             mem:        params.quant_mem,
@@ -76,13 +77,25 @@ workflow RNASEQ {
                                                                             additional: q_additional)
 
     // either use the index that was supplied by params.idx or the one made if params.ref_txtome/ref_genome was provided
-    if(params.idx == ''){
-        SalmonQuant(fq, SalmonIndex.out.idx)
-    } else {
-        SalmonQuant(fq, params.idx)
+    if(!params.skip_quant){
+        if(params.idx == ''){
+            SalmonQuant(fq, SalmonIndex.out.idx)
+        } else {
+            SalmonQuant(fq, params.idx)
+        }
     }
     
     //-------------------------------------------------------------------------------------------------------------------------------//
+    // tximport
+    include{    Tximport }          from './modules/tximport'   addParams(  outdir:     params.tximport_dir,
+                                                                            pubmode:    params.publishdir_mode,
+                                                                            mem:        params.tximport_mem)
+
+    if(!params.skip_tximport){
+        Tximport(SalmonQuant.out.quants, SalmonIndex.out.tx2gene)
+        
+
+    }
 
 }
 
