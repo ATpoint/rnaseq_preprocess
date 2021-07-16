@@ -41,8 +41,3 @@ jobs:
         run: |
           nextflow run main.nf -profile test_single,docker --trimming
           nextflow run main.nf -profile test_paired,docker --trimming
-          
-      - name: test_singularity
-        run: |
-          nextflow run main.nf -profile test_single,singularity --trimming
-          nextflow run main.nf -profile test_paired,singularity --trimming
