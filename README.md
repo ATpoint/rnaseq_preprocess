@@ -43,7 +43,7 @@ For submission via SLURM on a cluster one can use `-profile slurm`. The options 
 
 ## Citations
 
--  [nf-core project](https://nf-co.re/)
+-  [nf-core project from which much code inspiration was taken from](https://nf-co.re/)
 
 -  [Ewels et al (2020) Nature Biotechnology volume 38, pages 276–278](https://www.nature.com/articles/s41587-020-0439-x)
 
@@ -57,8 +57,4 @@ For submission via SLURM on a cluster one can use `-profile slurm`. The options 
 
 -  [Kurtzer et al (2017) Singularity: Scientific containers for mobility of compute. PLoS ONE](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0177459)
 
--  [Srivastava et al (2019) Alevin efficiently estimates accurate gene abundances from dscRNA-seq data. Genome Biology](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1670-y)
-
--  [Soneson et al (2021) Preprocessing choices affect RNA velocity results for droplet scRNA-seq data. PLoS Computational Biology](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1008585)
-
-- [Love et al (2020) Tximeta: Reference sequence checksums for provenance identification in RNA-seq](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1007664)
+-  [Patro et al (2017) Salmon: fast and bias-aware quantification of transcript expression using dual-phase inference](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5600148/)
