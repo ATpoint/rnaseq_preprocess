@@ -36,3 +36,8 @@ jobs:
         run: |
           nextflow run main.nf -profile test_single,docker --trim
           nextflow run main.nf -profile test_paired,docker --trim
+
+      - name: test_conda
+        run: |
+          nextflow run main.nf -profile test_single,conda --trim
+          nextflow run main.nf -profile test_paired,conda --trim
