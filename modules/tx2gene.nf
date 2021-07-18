@@ -15,7 +15,7 @@ process TX2GENE {
         
     script:    
     """
-    Rscript --vanilla ${baseDir}/src/tx2gene.R \
+    Rscript --vanilla ${baseDir}/bin/tx2gene.R \
         annot.gtf.gz tx2gene.txt params.transcript_id params.transcript_name params.gene_id params.gene_name params.gene_type
     """                
 

@@ -1,3 +1,4 @@
+#/ aggregate for the transcript-level abundance estimates to the gene level
 
 args = commandArgs(trailingOnly=TRUE)
 if (length(args) != 3) { 
@@ -13,7 +14,8 @@ tx2gene <- read.delim(tx2gene, header=TRUE)
 q <- paste0(quants, "/quant.sf")
 names(q) <- outname
 
-txi <- tximport::tximport(files=q, tx2gene=tx2gene, type="salmon")
+txi <- tximport::tximport(files=q, tx2gene=tx2gene, type="salmon",
+                          importer=read.delim)
 
 write.table(data.frame(Gene=rownames(txi$counts), txi$counts),
             paste0(outname, "_counts.txt"), sep="\t",

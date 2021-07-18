@@ -18,7 +18,9 @@ process Tximport {
             
     script: 
     """
-    Rscript --vanilla ${baseDir}/src/tximport.R $quants $sample_id $tx2gene
+
+    Rscript --vanilla $baseDir/bin/tximport.R $quants $sample_id $tx2gene
+
     """      
 
 }

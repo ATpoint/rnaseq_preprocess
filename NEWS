@@ -1,3 +1,6 @@
+v1.2.0:
+-added --tx2gene and added checks that --idx and --tx2gene exist
+
 v1.1.0:
 -added tx2gene generation to indexing process
 -added tximport process

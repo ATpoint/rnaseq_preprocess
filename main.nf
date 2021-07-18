@@ -45,10 +45,40 @@ workflow RNASEQ {
                                                                             pubmode:    params.publishdir_mode,
                                                                             additional: params.idx_additional)
 
-    SalmonIndex(params.ref_txtome, params.ref_genome, params.idx_name, params.ref_gtf)
+    
+    // Either make a new index from scratch or use provided one if exists:
+    if(params.idx == ''){
+        
+        SalmonIndex(params.ref_txtome, params.ref_genome, params.idx_name, params.ref_gtf)
+        use_index = SalmonIndex.out.idx
+        use_tx2gene = SalmonIndex.out.tx2gene
+
+    } else {
+        
+        if(! file(params.idx).exists()){
+
+            println("[Error] ::: --idx does not exist!")
+            System.exit(1)
+
+        } else {
+            
+            use_index = params.idx 
+
+            // if no indexing from scratch then make sure tx2gene exists
+            if(! new File(params.tx2gene).exists() | params.tx2gene == ''){
+                println("[Error] ::: --tx2gene does not exist!")
+                System.exit(1)
+
+            } else use_tx2gene = params.tx2gene
+        }
+
+
+
+    }
 
     //-------------------------------------------------------------------------------------------------------------------------------//
     // Trimming
+
     include{    Trim        }       from './modules/trim'       addParams(  threads:    params.trim_threads,
                                                                             mem:        params.trim_mem,
                                                                             outdir:     params.trim_dir,
@@ -76,26 +106,21 @@ workflow RNASEQ {
                                                                             libtype:    params.quant_libtype,
                                                                             additional: q_additional)
 
-    // either use the index that was supplied by params.idx or the one made if params.ref_txtome/ref_genome was provided
-    if(!params.skip_quant){
-        if(params.idx == ''){
-            SalmonQuant(fq, SalmonIndex.out.idx)
-        } else {
-            SalmonQuant(fq, params.idx)
-        }
-    }
-    
+    if(!params.skip_quant) SalmonQuant(fq, use_index)
+            
     //-------------------------------------------------------------------------------------------------------------------------------//
     // tximport
+
     include{    Tximport }          from './modules/tximport'   addParams(  outdir:     params.tximport_dir,
                                                                             pubmode:    params.publishdir_mode,
                                                                             mem:        params.tximport_mem)
 
-    if(!params.skip_tximport){
-        Tximport(SalmonQuant.out.quants, SalmonIndex.out.tx2gene)
-        
+    // only if quant was run:
+    run_tximport = true
 
-    }
+    if(params.skip_quant | params.skip_tximport) run_tximport = false
+
+    if(run_tximport) Tximport(SalmonQuant.out.quants, use_tx2gene)
 
 }
 
