@@ -8,7 +8,7 @@ A Nextflow pipeline for preprocessing of RNA-seq data
 - create a genome-decoyed index with `salmon`. This requires a reference transcriptome and genome, which can be provided as files from disk or by providing links to a server, e.g. an FTP address.
 Alternatively, the user can directly provide a premade index.
 
-- trimming of the fastq files with `cutadapt`. This is not activated by default, use `--trimming` to turn it on. Default adapter sequence is the TruSeq adapter.
+- trimming of the fastq files with `cutadapt`. This is not activated by default, use `--trim` to turn it on. Default adapter sequence is the TruSeq adapter.
 
 - quantification with `salmon` against the created or provided index.
 
@@ -29,7 +29,7 @@ The data are expected to be gzip-compressed with suffix `fastq.gz`.
 
 - `--ref_genome` and `--ref_txtome`: paths to fasta files for genome and transcriptome (expected to end `.fa.gz`) or download links, e.g. FTP address to pull it from remote.
 
-- `--trimming`: if set then perform adapter trimming with `cutadapt`
+- `--trim`: if set then perform adapter trimming with `cutadapt`
 
 - `--quant_libtype`: the [library type flag for salmon](https://salmon.readthedocs.io/en/latest/salmon.html#quantifying-in-alignment-based-mode), by default 'A' for automatic detection.
 Standard stranded libraries, e.g. NEBnext UltraII Directional Prep Kit would be 'ISR' and unstranded libraries are usually 'IU'.
