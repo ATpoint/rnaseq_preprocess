@@ -3,3 +3,6 @@ work
 .nextflow*
 *_results
 trace*
+index
+salmon_quants
+tximport
