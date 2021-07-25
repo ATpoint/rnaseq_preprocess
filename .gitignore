@@ -1,0 +1,5 @@
+.DS_*
+work
+.nextflow*
+*_results
+trace*

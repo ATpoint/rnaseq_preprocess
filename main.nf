@@ -15,10 +15,13 @@
 
 nextflow.enable.dsl=2
 
+def latest_sha = "git rev-parse HEAD".execute()
+
 println ''
-println '|------------------------------------------------------------------'
-println "[Info] This is rnaseq_preprocess version ::: $params.version"
-println '|------------------------------------------------------------------'
+println '|-------------------------------------------------------------------------------------------------------------'
+println ''
+println "[Info] This is rnaseq_preprocess, latest comitted sha ::: " + latest_sha.text
+println '|-------------------------------------------------------------------------------------------------------------'
 println ''
 
 // fastq file channel:
