@@ -1,6 +1,12 @@
 # rnaseq_proprocess
 
-A Nextflow pipeline for preprocessing of RNA-seq data
+A Nextflow pipeline for preprocessing of RNA-seq data.
+
+<br>
+
+![CI](https://github.com/ATpoint/rnaseq_preprocess/actions/workflows/testing1.yml/badge.svg)
+
+<br>
 
 
 ## Workflow
