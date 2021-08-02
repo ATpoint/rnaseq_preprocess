@@ -20,7 +20,7 @@ def latest_sha = "git rev-parse HEAD".execute()
 println ''
 println '|-------------------------------------------------------------------------------------------------------------'
 println ''
-println "[Info] This is rnaseq_preprocess
+println "[Info] This is rnaseq_preprocess"
 println ''
 println '|-------------------------------------------------------------------------------------------------------------'
 println ''
