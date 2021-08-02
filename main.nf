@@ -15,7 +15,7 @@
 
 nextflow.enable.dsl=2
 
-def latest_sha = "git rev-parse HEAD".execute()
+// def latest_sha = "git rev-parse HEAD".execute()
 
 println ''
 println '|-------------------------------------------------------------------------------------------------------------'
