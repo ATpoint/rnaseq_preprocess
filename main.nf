@@ -30,11 +30,9 @@ if(!params.skip_quant) {
     if(params.mode == "paired"){
         ch_fastq    = Channel
                     .fromFilePairs(params.fastq, checkIfExists: true)
-                    .ifEmpty("No fastq files found")
     } else if(params.mode == "single"){
         ch_fastq    = Channel
                     .fromPath(params.fastq, checkIfExists: true)
-                    .ifEmpty("No fastq files found")
                     .map { file -> tuple(file.simpleName, file) }
     }
 } else ch_fastq = null
