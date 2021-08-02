@@ -1,4 +1,0 @@
-
-process().out.bam.view()
-[sample1, /path/to/sample1_filtered.bam, /path/to/sample1_filtered.bam.bai]
-[sample2, /path/to/sample2_filtered.bam, /path/to/sample2_filtered.bam.bai]

@@ -6,3 +6,5 @@ trace*
 index
 salmon_quants
 tximport
+testout
+cleanup*
