@@ -13,6 +13,25 @@ A Nextflow pipeline for preprocessing of RNA-seq data.
 
 
 ...documentation will follow...
+<br>
+Example launch command for a standard paired-end dataset, with index already created, using Singularity, and submitting via SLURM on a 'normal' queue,
+using up to 16 threads per quantification job:
+
+```bash
+
+module load Singularity && \
+NXF_HOME=$(realpath ./NXF_HOME/) NXF_VER=21.04.1 \
+    nextflow run atpoint/rnaseq_preprocess -r 8ba0a6bf7866d2272c44ae33613373134af41ae4 \
+        -with-trace \
+        -profile singularity,slurm \
+        --queue 'normal' \
+        --fastq "$(pwd)"'/*{1,2}.fastq.gz' \
+        --idx '/scratch/tmp/a_toen03/project/reference_files/salmon_idx/gencode_vM25_k31/idx_k31' \
+        --trim --trim_threads 8 \
+        --quant_threads 16 --quant_libtype 'A' --quant_additional '\--gcBias --seqBias' \
+        --tx2gene '/scratch/tmp/a_toen03/project/reference_files/salmon_idx/gencode_vM25_k31/tx2gene.txt'
+        
+```
 
 ## Citations
 
