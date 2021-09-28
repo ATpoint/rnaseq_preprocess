@@ -73,7 +73,7 @@ NXF_HOME=$(realpath ./NXF_HOME/) NXF_VER=21.04.1 \
         --tx2gene '/path/to/tx2gene.txt'      
 ```
 
-For testing there are small example data in the `test` folder, and three profiles to use them (`-profile test_paired/test_single/test_idx). These are used for the GitHub Actions [CI testing](https://github.com/ATpoint/rnaseq_preprocess/blob/main/.github/workflows/CI.yml).
+For testing there are small example data in the `test` folder, and three profiles to use them (`-profile test_paired/test_single/test_idx`). These are used for the GitHub Actions [CI testing](https://github.com/ATpoint/rnaseq_preprocess/blob/main/.github/workflows/CI.yml).
 
 ## Citations
 
