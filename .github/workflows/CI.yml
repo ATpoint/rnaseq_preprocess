@@ -8,9 +8,9 @@ on:
   push:
     branches: [ dev, main ]
     paths-ignore:
-      - README.md
+      - '*.md'
       - .gitignore
-      - versions_DockerHub.md
+      
   pull_request:
     branches: [ main ]
 
