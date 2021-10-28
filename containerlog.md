@@ -5,4 +5,12 @@ Build container with `docker build -t user/reponame:tag .` given the Dockerfile 
 ## v1.3.0
 - switched to micromamba base image
 
-(...)
+## v1.2.0
+- added tzdata to apt-get install to set a timezone which is not part of the stripped-down mambaforge container
+
+## v1.1.0
+- added multiqc
+
+## v1.0.0
+- first commit
+
