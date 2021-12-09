@@ -14,7 +14,7 @@ A Nextflow pipeline for preprocessing of RNA-seq data.
 
 <br>
 
-The pipelines quantifies RNA-seq data in fastq format (fastq.gz), optionally after trimming, against a reference using [salmon](https://github.com/COMBINE-lab/salmon). It then summarizes the transcript abundance estimates to the gene level with [tximport](https://bioconductor.org/packages/release/bioc/html/tximport.html). 
+The pipelines quantifies RNA-seq data in fastq format (fastq.gz), optionally after trimming with `cutadapt`, against a genome-decoyed transcriptome using [salmon](https://github.com/COMBINE-lab/salmon). It then summarizes the transcript abundance estimates to the gene level with [tximport](https://bioconductor.org/packages/release/bioc/html/tximport.html). 
 
 The user can run the pipeline with software being installed locally (default), or via either conda, Docker and Singularity by using `-profile conda/docker/singularity`. This will then either create the conda environment based on the `environment.yml` in this repository or pull [an image with the required software](https://hub.docker.com/r/atpoint/rnaseq_preprocess/tags?page=1&ordering=last_updated) for Docker/Singularity automatically.
 
