@@ -1,11 +1,10 @@
-FROM mambaorg/micromamba:0.15.3
+FROM r-base:4.1.2
 
-USER root 
+RUN apt-get update && \
+    apt-get install -y ca-certificates wget nano procps && \
+    wget -q https://github.com/COMBINE-lab/salmon/releases/download/v1.6.0/salmon-1.6.0_linux_x86_64.tar.gz && \
+    tar zxf salmon-1.6.0_linux_x86_64.tar.gz && \
+    PATH="salmon-1.6.0_linux_x86_64/bin"
 
-COPY --chown=micromamba:micromamba environment.yml environment.yml
-
-RUN apt update && \
-    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends tzdata wget nano && \ 
-    apt-get clean && \
-    micromamba install -y -n base -f environment.yml && \   
-    micromamba clean --all --yes
+RUN export PATH
+    

@@ -5,13 +5,6 @@ channels:
   - r
   - defaults
 dependencies:
-  - bioconductor-rtracklayer=1.52.0
-  - bioconductor-tximport=1.20.0
-  - cutadapt=3.4
-  - fastqc=0.11.9
-  - multiqc=1.11
-  - r-jsonlite=1.7.2
-  - python=3.9.6
-  - r-readr=1.4.0
-  - salmon=1.5.1
+  - r-base
+  - salmon=1.6.0
 
