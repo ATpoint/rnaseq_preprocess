@@ -1,4 +1,4 @@
-# rnaseq_proprocess
+# rnaseq_preprocess
 
 A Nextflow pipeline for preprocessing of RNA-seq data.
 
