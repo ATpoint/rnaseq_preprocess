@@ -1,22 +1,23 @@
-// tx2gene map for tximport
+process Tx2Gene {
 
-process TX2GENE {
+    label 'process_tx2gene'
 
-    cpus   1
-    memory '1G'
+    publishDir params.outdir, mode: params.publishmode
 
-    publishDir params.outdir, mode: params.pubmode
+    if(workflow.profile.contains('conda'))  { conda "bioconductor-rtracklayer=1.54.0--r41ha2fdcc6_1"}
+    if(workflow.profile.contains('docker')) { container "quay.io/biocontainers/bioconductor-rtracklayer:1.54.0--r41ha2fdcc6_1" }
+    if(workflow.profile.contains('singularity')) { container "quay.io/biocontainers/bioconductor-rtracklayer:1.54.0--r41ha2fdcc6_1" }
 
     input:
     path(gtf)
             
     output:
-    path("tx2gene.txt")
+    path("tx2gene.txt"), emit: tx2gene
         
     script:    
     """
     Rscript --vanilla ${baseDir}/bin/tx2gene.R \
-        annot.gtf.gz tx2gene.txt params.transcript_id params.transcript_name params.gene_id params.gene_name params.gene_type
+        $gtf tx2gene.txt $params.transcript_id $params.transcript_name $params.gene_id $params.gene_name $params.gene_type
     """                
 
 }

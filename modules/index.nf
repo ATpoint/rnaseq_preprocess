@@ -1,23 +1,24 @@
-// Create genome-decoyed index with salmon and a tx2gene mapping table
+process Idx {
 
-process SalmonIndex {
+    label 'process_idx'
 
-    cpus   params.threads
-    memory params.mem
+    errorStrategy 'finish'
 
-    publishDir params.outdir, mode: params.pubmode
+    publishDir params.outdir, mode: params.publishmode
+
+    if(workflow.profile.contains('conda'))  { conda params.environment}
+    if(workflow.profile.contains('docker')) { container params.container }
+    if(workflow.profile.contains('singularity')) { container params.container }
 
     input:
     path(txtome)
     path(genome) 
     val(idxname)
-    path(gtf)
         
     output:
     path("decoynames.txt")
     path("gentrome.fa.gz")
     path(idxname), emit: idx
-    path("tx2gene.txt"), emit: tx2gene
     
     script: 
 
@@ -25,7 +26,7 @@ process SalmonIndex {
     def gentrome    = "gentrome.fa.gz"
 
     """
-    zgrep '^>' $genome | cut -d " " -f 1 | awk '{gsub(\">\",\"\");print}' > $decoynames
+    gzip -cd $genome | grep '^>' | cut -d " " -f 1 | awk '{gsub(\">\",\"\");print}' > $decoynames
 
     cat $txtome $genome > $gentrome
 
@@ -35,10 +36,6 @@ process SalmonIndex {
         -i $idxname \
         -p $task.cpus \
         $params.additional
-
-    Rscript --vanilla ${baseDir}/bin/tx2gene.R \
-        $gtf tx2gene.txt $params.transcript_id $params.transcript_name $params.gene_id $params.gene_name $params.gene_type
-
     """                
 
 }
