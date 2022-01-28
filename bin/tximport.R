@@ -15,7 +15,8 @@ names(q) <- bname
 
 txi <- tximport::tximport(files=q, tx2gene=tx2gene, 
                           type="salmon", importer=read.delim,
-                          countsFromAbundance="lengthScaledTPM")
+                          countsFromAbundance="lengthScaledTPM",
+                          dropInfReps=TRUE)
 
 q#/ save counts with length being the median of average tx length:
 tgz <- gzfile(paste0(outname, "counts_genelevel.txt.gz"), "w")
