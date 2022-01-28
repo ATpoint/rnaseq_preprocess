@@ -226,7 +226,11 @@ workflow {
     } else {
 
         if(ConvertBool2String(params.idx)==''){
-            if(!params.only_fastqc) IDX()
+
+            if(params.only_fastqc==false){
+                IDX()
+            }
+            
         }
 
         skip_fastqc = params.skip_fastqc
