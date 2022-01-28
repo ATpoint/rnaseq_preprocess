@@ -89,7 +89,7 @@ NXF_VER=21.10.6 \
     --publishmode 'copy' \
     --genome path/to/genome.fa.gz --txtome path/to/txtome.fa.gz --gtf path/to/foo.gtf.gz \
     --samplesheet path/to/samplesheet.csv \
-    -with-report indexing_report.html \
-    -with-trace indexing_report.log \
+    -with-report report.html \
+    -with-trace report.log \
     -profile slurm,singularity    
 ```    
