@@ -28,7 +28,7 @@ NXF_VER=21.10.6 \
     --only_idx \ # this makes the pipeline stop after indexing
     --genome path/to/genome.fa.gz --txtome path/to/txtome.fa.gz --gtf path/to/foo.gtf.gz \
     -with-report indexing_report.html \
-    -with-trace indexing_report.log \
+    -with-trace indexing_report.log
 ```
 
 After this finishes successfully one can delete the `work` directory as the results have been copied to the output folder. See the [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) on choices for `--publishmode` and what the pro/cons are per choice.
