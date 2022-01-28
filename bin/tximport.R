@@ -1,37 +1,32 @@
-#/ aggregate for the transcript-level abundance estimates to the gene level
+library(tximport)
 
 args = commandArgs(trailingOnly=TRUE)
-if (length(args) != 3) { 
+if(length(args) != 3) { 
   stop("Usage: tximport.R <salmon_dir> <outname> <tx2gene>",call.=FALSE)
 }
 
-quants <- args[1]
-outname <- args[2]
-tx2gene <- args[3]
+quants   <- args[1]
+quants   <- strsplit(quants, split=",")[[1]]
+bname    <- quants
+outname  <- args[2]
+tx2gene  <- read.delim(args[3], header=TRUE)
+q        <- paste0(quants, "/quant.sf")
+names(q) <- bname
 
-tx2gene <- read.delim(tx2gene, header=TRUE)
+txi <- tximport::tximport(files=q, tx2gene=tx2gene, 
+                          type="salmon", importer=read.delim,
+                          countsFromAbundance="lengthScaledTPM")
 
-q <- paste0(quants, "/quant.sf")
-names(q) <- outname
+q#/ save counts with length being the median of average tx length:
+tgz <- gzfile(paste0(outname, "counts_genelevel.txt.gz"), "w")
 
-txi <- tximport::tximport(files=q, tx2gene=tx2gene, type="salmon",
-                          importer=read.delim)
+rl <- apply(txi$length, 1, median)
 
-write.table(data.frame(Gene=rownames(txi$counts), txi$counts),
-            paste0(outname, "_counts.txt"), sep="\t",
-            col.names=TRUE, row.names=FALSE, quote=FALSE)
+write.table(x=data.frame(gene=rownames(txi$counts), 
+                         length=ceiling(rl),
+                         txi$counts), 
+            file=tgz, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
 
-write.table(data.frame(Gene=rownames(txi$length), txi$length),
-            paste0(outname, "_lengths.txt"), sep="\t",
-            col.names=TRUE, row.names=FALSE, quote=FALSE)
-
-if("infReps" %in% names(txi)){
-  txi$infReps <- txi$infReps[[1]]
-  fgz <- gzfile(paste0(outname, "_infreps.txt.gz"), "w")
-  write.table(data.frame(Gene=rownames(txi$infReps), txi$infReps),
-              file=fgz, sep="\t",
-              col.names=TRUE, row.names=FALSE, quote=FALSE)
-  close(fgz)
-}
+close(tgz)
                      
                      
