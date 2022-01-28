@@ -219,16 +219,24 @@ workflow {
     if(params.only_idx) {
         
         IDX()
-        only_fastqc = true
+        only_fastqc = false
         skip_fastqc = true
         skip_quant = true
 
     } else {
 
+        if(ConvertBool2String(params.idx)==''){
+            if(!params.only_fastqc) IDX()
+        }
+
         skip_fastqc = params.skip_fastqc
         skip_quant  = false
 
     }
+
+    if(params.only_fastqc) {
+        only_fastqc = true
+    } else only_fastqc = false
 
     if(!skip_fastqc) FASTQC(ch_samplesheet)
     
@@ -252,8 +260,8 @@ workflow {
     }
 
     // summary report:
-    if(skip_fastqc == false && skip_quant == false) combined_channel = FASTQC.out.fastqc.concat(quant_only_quant)
-    if(skip_fastqc == false && skip_quant == true)  combined_channel = FASTQC.out.fastqc
+    if(skip_fastqc == false && skip_quant == false && only_fastqc == false) combined_channel = FASTQC.out.fastqc.concat(quant_only_quant)
+    if((skip_fastqc == false && skip_quant == true) || (only_fastqc == true))  combined_channel = FASTQC.out.fastqc
     if(skip_fastqc == true  && skip_quant == false) combined_channel = quant_only_quant        
 
     if(skip_quant == false || skip_fastqc == false) MULTIQC(combined_channel.collect())
