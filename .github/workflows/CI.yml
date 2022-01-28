@@ -1,51 +1,60 @@
-# This is a basic workflow to help you get started with Actions
+# CI tests using GitHub Actions
 
 name: CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # trigger on push
   push:
-    branches: [ dev, main ]
+    # to all branches
+    branches:
+      - '**'
+    # ignore LICENSE, all .ignore and markdown files
     paths-ignore:
       - '*.md'
-      - .gitignore
-      
+      - '*.ignore'
+      - LICENSE
   pull_request:
-    branches: [ main ]
+    branches:
+      - '**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  
+  #=======================================================================================================
+  
+  # Test via Docker and conda:
+  SC_PREPROCESS_CI_TESTS:
+    
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+
       - uses: actions/checkout@v2
-      
-      #/ borrowed from nf-core:
-      - name: Install Nextflow
+
+      - name: INSTALL-NEXTFLOW
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
-          
-      # Runs a single command using the runners shell
-      - name: test_docker
-        run: |
-          nextflow run main.nf -profile test_single,docker --trim
-          nextflow run main.nf -profile test_paired,docker --trim
-          nextflow run main.nf -profile test_paired,docker --idx $(pwd)/test/index/salmonIDX --tx2gene $(pwd)/test/index/tx2gene.txt
-          nextflow run main.nf -profile test_idx,docker
 
-      - name: test_conda
+      # full with docker
+      - name: TEST-DOCKER_ALL
+        run: NXF_VER=21.10.6 nextflow run main.nf -profile docker,test
+
+      # full with conda
+      - name: TEST-CONDA
         run: |
-          nextflow run main.nf -profile test_single,conda --trim
-          nextflow run main.nf -profile test_paired,conda --trim
-          nextflow run main.nf -profile test_paired,conda --idx $(pwd)/test/index/salmonIDX --tx2gene $(pwd)/test/index/tx2gene.txt
-          nextflow run main.nf -profile test_idx,conda
+          conda config --add channels r
+          conda config --add channels conda-forge
+          conda config --add channels bioconda
+          NXF_VER=21.10.6 nextflow run main.nf -profile conda,test
+
+      - uses: eWaterCycle/setup-singularity@v7
+        with:
+          singularity-version: 3.8.0
+    
+      # full with singularity
+      - name: TEST-SINGULARITY
+        run: NXF_VER=21.10.6 nextflow run main.nf -profile singularity,test  

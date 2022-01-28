@@ -1,26 +1,26 @@
-// Create genome-decoyed index with salmon and a tx2gene mapping table
-
 process Tximport {
 
-    cpus   1
-    memory params.mem
+    label 'process_tximport'
 
-    publishDir params.outdir, mode: params.pubmode
+    publishDir params.outdir, mode: params.publishmode
 
+    if(workflow.profile.contains('conda'))  { conda "bioconductor-tximport=1.22.0"}
+    if(workflow.profile.contains('docker')) { container "quay.io/biocontainers/bioconductor-tximport:1.22.0--r41hdfd78af_0" }
+    if(workflow.profile.contains('singularity')) { container "quay.io/biocontainers/bioconductor-tximport:1.22.0--r41hdfd78af_0" }
+    
     input:
-    tuple val(sample_id), path(quants)
+    path(quants) 
+    val(outname)  // collected paths to all salmon dirs
     path(tx2gene)
         
     output:
-    path("*_counts.txt")
-    path("*_lengths.txt")
-    path("*_infreps.txt.gz"), optional: true
+    path("*counts_genelevel.txt.gz")
+    //path("*_infreps.txt.gz"), optional: true
             
     script: 
+    def q = quants.join(',').toString()
     """
-
-    Rscript --vanilla $baseDir/bin/tximport.R $quants $sample_id $tx2gene
-
+    Rscript --vanilla $baseDir/bin/tximport.R $q $outname $tx2gene
     """      
 
 }

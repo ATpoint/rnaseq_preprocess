@@ -1,135 +1,247 @@
 #! /usr/bin/env nextflow
 
-/*  
-    ---------------------------------------------------------------------------------------------------------------
-    
-    Workflow for RNA-seq quantification with salmon
-    --||    Creation of a genome-decoyed index
-
-    --||    optional trimming of the data
-
-    --||    quantification with salmon
-
-    ---------------------------------------------------------------------------------------------------------------
-*/ 
-
 nextflow.enable.dsl=2
 
-// def latest_sha = "git rev-parse HEAD".execute()
+//------------------------------------------------------------------------
+// Intro message
+//------------------------------------------------------------------------
 
-println ''
-println '|-------------------------------------------------------------------------------------------------------------'
-println ''
-println "[Info] This is rnaseq_preprocess"
-println ''
-println "The below summary of all params can be found in the .nextflow.log file:" 
-println("$params")
-println ''
-println '|-------------------------------------------------------------------------------------------------------------'
-println ''
+def longline="========================================================================================================================="
 
-// fastq file channel:
-if(!params.skip_quant) {
-    if(params.mode == "paired"){
-        ch_fastq    = Channel
-                    .fromFilePairs(params.fastq, checkIfExists: true)
-    } else if(params.mode == "single"){
-        ch_fastq    = Channel
-                    .fromPath(params.fastq, checkIfExists: true)
-                    .map { file -> tuple(file.simpleName, file) }
-    }
-} else ch_fastq = null
+Date date = new Date()
+String datePart = date.format("yyyy-dd-MM -- ")
+String timePart = date.format("HH:mm:ss")
+def start_date = datePart + timePart
 
-// Define the final workflow:
-workflow RNASEQ {
+println ""
+println "\u001B[33m$longline"
+println "Pipeline:      rnaseq_preprocess"
+println "GitHub:        https://github.com/ATpoint/rnaseq_preprocess"
+println "Documentation: https://github.com/ATpoint/rnaseq_preprocess/README.md"
+println "Author:        Alexander Toenges (@ATpoint)"
+println "Runname:       $workflow.runName"
+println "Profile:       $workflow.profile"
+println "Start:         $start_date"
+println "$longline\u001B[0m"
 
-    //-------------------------------------------------------------------------------------------------------------------------------//
-    // Indexing
+//------------------------------------------------------------------------
+// Validate input params via schema.nf
+//------------------------------------------------------------------------
 
-    include{    SalmonIndex }       from './modules/index'      addParams(  threads:    params.idx_threads,
-                                                                            mem:        params.idx_mem,
-                                                                            outdir:     params.idx_dir,
-                                                                            pubmode:    params.publishdir_mode,
-                                                                            additional: params.idx_additional)
+ evaluate(new File("${baseDir}/functions/validate_schema_params.nf"))
 
+//------------------------------------------------------------------------
+// Load the modules and pass params
+//------------------------------------------------------------------------
+
+include{ Idx }          from './modules/index'      addParams(  outdir:         params.idx_dir,
+                                                                publishmode:    params.publishmode,
+                                                                additional:     params.idx_additional)
+
+include { Tx2Gene }     from './modules/tx2gene'    addParams(  outdir:         params.idx_dir,
+                                                                publishmode:    params.publishmode)
+                                                             
+include{ FastQC }       from './modules/fastqc'     addParams(  outdir:         params.fastqc_dir,
+                                                                publishmode:    params.publishmode,
+                                                                additional:     params.fastqc_additional)
+
+include{ Quant }        from './modules/quant'      addParams(  outdir:         params.quant_dir,
+                                                                publishmode:    params.publishmode,
+                                                                additional:     params.quant_additional)
+
+include{ Tximport }     from './modules/tximport'   addParams(  outdir:         params.tximport_dir,
+                                                                publishmode:    params.publishmode)
+
+include{ MultiQC }      from './modules/multiqc'     addParams( outdir:         params.multiqc_dir,
+                                                                publishmode:    params.publishmode,
+                                                                additional:     params.multiqc_additional)
+
+//------------------------------------------------------------------------
+// Validate samplesheet
+//------------------------------------------------------------------------
+
+if(!params.only_idx){
+
+    // Validate that fastq files in samplesheet exist as files on disk
+
+    fastq_no_exist  = [:]
+    libtype_error   = [:]
     
-    // Either make a new index from scratch or use provided one if exists:
-    if(params.idx == ''){
-        
-        SalmonIndex(params.ref_txtome, params.ref_genome, params.idx_name, params.ref_gtf)
-        use_index = SalmonIndex.out.idx
-        use_tx2gene = SalmonIndex.out.tx2gene
+    if(!(new File(params.samplesheet)).exists()){
+        println "\u001B[31m$longline"
+        println "[VALIDATION ERROR]"
+        println "The samplesheet does not exist!"
+        println "$longline\u001B[0m"
+        System.exit(1)
+    }
 
+    // Read samplesheet and replace relative paths by absolute ones
+    ch_samplesheet = Channel
+        .fromPath(params.samplesheet)
+        .splitCsv(header:true)
+        .map{ r -> 
+
+            sample = r['sample']
+
+            r1 = r['r1']
+                    .toString()
+                    .replaceAll('\\$baseDir|\\$\\{baseDir\\}', new String("${baseDir}/"))
+                    .replaceAll('\\$launchDir|\\$\\{launchDir\\}', new String("${launchDir}/"))
+                    .replaceAll('\\$projectDir|\\$\\{projectDir\\}', new String("${projectDir}/"))    
+
+            r2 = r['r2']
+                    .toString()
+                    .replaceAll('\\$baseDir|\\$\\{baseDir\\}', new String("${baseDir}/"))
+                    .replaceAll('\\$launchDir|\\$\\{launchDir\\}', new String("${launchDir}/"))
+                    .replaceAll('\\$projectDir|\\$\\{projectDir\\}', new String("${projectDir}/"))
+
+            lt = r['libtype']                                                         
+
+            tuple(sample, r1, r2, lt)                    
+
+    }.groupTuple(by: 0)
+     .map { rr -> 
+                libtype = rr[3]
+                if(libtype.unique().size() == 1) lt = libtype.unique()
+                if(libtype.unique().size() > 1) lt = "error"
+
+            tuple(rr[0], rr[1], rr[2], lt)
+
+     }
+
+}    
+
+//------------------------------------------------------------------------      
+// Define subworkflows
+//------------------------------------------------------------------------
+
+def ConvertBool2String(indata='') {
+    
+    if(indata instanceof Boolean){
+        return ''
     } else {
-        
-        if(! file(params.idx).exists()){
-
-            println("[Error] ::: --idx does not exist!")
-            System.exit(1)
-
-        } else {
-            
-            use_index = params.idx 
-
-            // if no indexing from scratch then make sure tx2gene exists
-            if(! new File(params.tx2gene).exists() | params.tx2gene == ''){
-                println("[Error] ::: --tx2gene does not exist!")
-                System.exit(1)
-
-            } else use_tx2gene = params.tx2gene
-        }
-
-
-
+        return indata
     }
+}
 
-    //-------------------------------------------------------------------------------------------------------------------------------//
-    // Trimming
+workflow IDX {
 
-    include{    Trim        }       from './modules/trim'       addParams(  threads:    params.trim_threads,
-                                                                            mem:        params.trim_mem,
-                                                                            outdir:     params.trim_dir,
-                                                                            pubmode:    params.publishdir_mode,
-                                                                            additional: params.trim_additional)
+    main:
+        Idx(params.txtome, params.genome, params.idx_name)
 
-    if(params.trim && !params.skip_quant) {
-        Trim(ch_fastq)
-        fq = Trim.out.trimmed
-    } else fq = ch_fastq
+        Tx2Gene(params.gtf)
 
-    //-------------------------------------------------------------------------------------------------------------------------------//
-    // Quantification
-
-    // we add some defaults for paired-end data if params.quant_additional is empty:
-    q_additional = params.quant_additional
-    if(params.quant_additional == '' && params.mode == 'paired'){
-        q_additional = '--gcBias --seqBias'
-    }
-
-    include{    SalmonQuant }       from './modules/quant'      addParams(  threads:    params.quant_threads,
-                                                                            mem:        params.quant_mem,
-                                                                            outdir:     params.quant_dir,
-                                                                            pubmode:    params.publishdir_mode,
-                                                                            libtype:    params.quant_libtype,
-                                                                            additional: q_additional)
-
-    if(!params.skip_quant) SalmonQuant(fq, use_index)
+        this_idx     = Idx.out.idx 
+        this_tx2gene = Tx2Gene.out.tx2gene
             
-    //-------------------------------------------------------------------------------------------------------------------------------//
-    // tximport
-
-    include{    Tximport }          from './modules/tximport'   addParams(  outdir:     params.tximport_dir,
-                                                                            pubmode:    params.publishdir_mode,
-                                                                            mem:        params.tximport_mem)
-
-    // only if quant was run:
-    run_tximport = true
-
-    if(params.skip_quant | params.skip_tximport) run_tximport = false
-
-    if(run_tximport) Tximport(SalmonQuant.out.quants, use_tx2gene)
+    emit:
+        idx     = this_idx
+        tx2gene = this_tx2gene    
 
 }
 
-// Run it:
-workflow { RNASEQ() }
+workflow FASTQC {
+
+    take:
+        samplesheet
+
+    main:
+
+        new_samplesheet = samplesheet.map { k ->
+
+            // maybe one day there will be optional inputs for DSL2 ...
+            r2 = k[2].toString() == "['']" ? "/" : k[2]
+            tuple(k[0], k[1], r2)
+
+        }
+
+        FastQC(new_samplesheet)
+
+    emit:
+        fastqc = FastQC.out.zip
+
+
+}
+
+workflow QUANT {
+
+    take:
+        samplesheet
+        idx
+        tx2gene
+        
+    main:
+
+       new_samplesheet = samplesheet.map { k ->
+
+            // maybe one day there will be optional inputs for DSL2 ...
+            r2 = k[2].toString() == "['']" ? "/" : k[2]
+            tuple(k[0], k[1], r2, k[3])
+
+        }
+
+        Quant(new_samplesheet, idx, tx2gene)
+
+    emit:
+        quant   = Quant.out.quants
+        tx2gene = Quant.out.tx2gene
+
+}
+
+workflow TXIMPORT {
+
+    take:
+        salmons
+        outname
+        tx2gene
+
+    main:
+        Tximport(salmons, outname, tx2gene)
+}
+
+workflow MULTIQC {
+
+    take:
+        paths
+        
+    main:
+
+       MultiQC(paths)
+
+}
+
+//------------------------------------------------------------------------      
+// Define and run the main workflow
+//------------------------------------------------------------------------
+
+workflow {
+
+    IDX()
+
+    // run fastqc on all files:
+    if(!params.skip_fastqc){   
+
+        FASTQC(ch_samplesheet)
+
+    }
+    
+    if(!params.only_fastqc && !params.only_idx){
+
+        QUANT(ch_samplesheet, IDX.out.idx, IDX.out.tx2gene)
+        quant_only_quant = QUANT.out.quant.map { k -> k[1] }
+
+        TXIMPORT(quant_only_quant.collect(), params.tximport_name, IDX.out.tx2gene)
+
+    }
+
+    // summary report:
+    if(!params.skip_fastqc){       
+
+        combined_channel = FASTQC.out.fastqc.concat(quant_only_quant)
+
+    } else combined_channel = quant_only_quant
+
+    MULTIQC(combined_channel.collect())
+
+}
+
