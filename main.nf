@@ -214,34 +214,17 @@ workflow MULTIQC {
 // Define and run the main workflow
 //------------------------------------------------------------------------
 
-if(params.only_idx) {
-    skip_fastqc = true
-    skip_quant = true
-    skip_multiqc = true
-} else {
-    skip_fastqc = false
-    skip_quant = false
-    skip_multiqc = false
-}
+def skip_quant = params.only_idx==true ? true : false
+def skip_multiqc = params.only_idx==true ? true : false
+def run_idx = ConvertBool2String(params.idx)=='' ? true : false
+def only_fqc = params.only_fastqc==true ? true : false
 
-if(params.only_fastqc==true){
-    only_fastqc = true
-} else {
-    only_fastqc = false
-}
-
-if(params.skip_fastqc==true){
-    skip_fastqc == true
-} else {
-    skip_fastqc == false
-}
-        
 workflow {
 
     //------------------------------------------
     // Indexing
     //------------------------------------------
-    if(params.only_idx) {
+    if(params.only_idx==true) {
         
         IDX()
         use_idx     = IDX.out.idx
@@ -249,12 +232,18 @@ workflow {
 
     } else {
 
-        if(ConvertBool2String(params.idx)==''){
+        if(run_idx){
 
-            if(only_fastqc==false) {
-                IDX()
-                use_idx     = IDX.out.idx
-                use_tx2gene = IDX.out.tx2gene
+            if(run_idx==true) {
+
+                if(only_fqc==false){
+                
+                    IDX()
+                    use_idx     = IDX.out.idx
+                    use_tx2gene = IDX.out.tx2gene
+
+                }
+
             }
 
         } else {
@@ -269,12 +258,12 @@ workflow {
     //------------------------------------------
     // Fastqc
     //------------------------------------------
-    if(skip_fastqc==false) FASTQC(ch_samplesheet)
+    if(params.skip_fastqc==false && params.only_idx==false) FASTQC(ch_samplesheet)
     
     //------------------------------------------
     // Quant
     //------------------------------------------
-    if(only_fastqc == false && skip_quant == false){
+    if(params.only_fastqc==false && skip_quant==false){
 
         QUANT(ch_samplesheet, use_idx, use_tx2gene)
 
@@ -287,14 +276,33 @@ workflow {
     //------------------------------------------
     // Multiqc
     //------------------------------------------
+    
     if(skip_multiqc==false){
     
-        if(skip_fastqc == false && skip_quant == false && only_fastqc == false) combined_channel = FASTQC.out.fastqc.concat(quant_only_quant)
-        if((skip_fastqc == false && skip_quant == true) || (only_fastqc == true))  combined_channel = FASTQC.out.fastqc
-        if(skip_fastqc == true  && skip_quant == false) combined_channel = quant_only_quant        
+        if(params.skip_fastqc == false && skip_quant == false && params.only_fastqc == false) combined_channel = FASTQC.out.fastqc.concat(quant_only_quant)
+        if((params.skip_fastqc == false && skip_quant == true) || (params.only_fastqc == true))  combined_channel = FASTQC.out.fastqc
+        if(params.skip_fastqc == true  && skip_quant == false) combined_channel = quant_only_quant        
 
-        if(skip_quant == false || skip_fastqc == false) MULTIQC(combined_channel.collect())
+        if(skip_quant == false || params.skip_fastqc == false) MULTIQC(combined_channel.collect())
 
+    }
+
+    def od = params.outdir
+    workflow.onComplete {
+        Date date2 = new Date()
+        String datePart2 = date2.format("yyyy-dd-MM -- ")
+        String timePart2 = date2.format("HH:mm:ss")
+        def end_date = datePart2 + timePart2
+        println ""
+        println "\u001B[33m========================================================================================================================="
+        println "Pipeline completed!"
+        println "End: $end_date"
+        println "Results are in:"
+        println od
+        //println "A summary file with cellnumbers per sample is at:"
+        //println "$smyfile"
+        println "=========================================================================================================================\u001B[0m"
+        println ""
     }
 
 }
