@@ -216,32 +216,47 @@ workflow MULTIQC {
 
 workflow {
 
-    IDX()
+    if(params.only_idx) {
+        
+        IDX()
+        only_fastqc = true
+        skip_fastqc = true
+        skip_quant = true
 
-    // run fastqc on all files:
-    if(!params.skip_fastqc){   
+    } else {
 
-        FASTQC(ch_samplesheet)
+        skip_fastqc = params.skip_fastqc
+        skip_quant  = false
 
     }
-    
-    if(!params.only_fastqc && !params.only_idx){
 
-        QUANT(ch_samplesheet, IDX.out.idx, IDX.out.tx2gene)
+    if(!skip_fastqc) FASTQC(ch_samplesheet)
+    
+    if(params.only_fastqc == false && skip_quant == false){
+
+        // either use premade index or make new one
+        if(ConvertBool2String(params.idx) != ''){
+            use_idx     = params.idx
+            use_tx2gene = params.tx2gene
+        } else {
+            use_idx     = IDX.out.idx
+            use_tx2gene = IDX.out.tx2gene
+        }
+
+        QUANT(ch_samplesheet, use_idx, use_tx2gene)
+
         quant_only_quant = QUANT.out.quant.map { k -> k[1] }
 
-        TXIMPORT(quant_only_quant.collect(), params.tximport_name, IDX.out.tx2gene)
+        TXIMPORT(quant_only_quant.collect(), params.tximport_name, use_tx2gene)
 
     }
 
     // summary report:
-    if(!params.skip_fastqc){       
+    if(skip_fastqc == false && skip_quant == false) combined_channel = FASTQC.out.fastqc.concat(quant_only_quant)
+    if(skip_fastqc == false && skip_quant == true)  combined_channel = FASTQC.out.fastqc
+    if(skip_fastqc == true  && skip_quant == false) combined_channel = quant_only_quant        
 
-        combined_channel = FASTQC.out.fastqc.concat(quant_only_quant)
-
-    } else combined_channel = quant_only_quant
-
-    MULTIQC(combined_channel.collect())
+    if(skip_quant == false || skip_fastqc == false) MULTIQC(combined_channel.collect())
 
 }
 
