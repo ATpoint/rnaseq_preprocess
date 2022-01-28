@@ -52,6 +52,8 @@ The first row is the header which must be `sample,r1,r2,libtype`. These four fie
 
 Technical/lane replicates can provided here as well by using the **same** sample name (column1) for the fastq files being a technical replicate. In the above example `sample2` has two fastq file pairs that are a technical replicate. These will be merged internally prior to quantification. The `fastqc` will be done separately though. 
 
+Custom command line arguments can be passed to `salmon quant`(which runs the quantification) by `--quant_additional`, e.g. `--quant_additional '--numGibbsSamples 8'` to produce inferential replicates. By default we run paired-end data with the `salmon` flags `--posBias --seqBias --gcBias` and single-end data with the same excluding `--gcBias` via that `--quant_additional` flag. Use `--quant_additional ''` to turn that off. In case of **end-tagged** data such as QuantSeq one should use `--quant_additional '--noLengthCorrection'`.
+
 Prior to quantification a `fastqc` check is run. If only this shall be executed without indexing and quantification, e.g. to check whether adapter contamination is present that require trimming then use `--only_fastqc`.
 
 Once the quantification is done the pipeline will produce a gene-level count matrix for all samples using `tximport`.
