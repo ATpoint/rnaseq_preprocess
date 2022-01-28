@@ -9,9 +9,9 @@ process FastQC {
 
     publishDir params.outdir, mode: params.publishmode
 
-    if(workflow.profile.contains('conda'))  { conda "fastqc=0.11.9"}
-    if(workflow.profile.contains('docker')) { container "quay.io/biocontainers/fastqc:0.11.9--hdfd78af_1" }
-    if(workflow.profile.contains('singularity')) { container "quay.io/biocontainers/fastqc:0.11.9--hdfd78af_1" }
+    if(workflow.profile.contains('conda'))  { conda params.environment }
+    if(workflow.profile.contains('docker')) { container params.container }
+    if(workflow.profile.contains('singularity')) { container params.container }
 
 
     input:

@@ -4,9 +4,9 @@ process Tx2Gene {
 
     publishDir params.outdir, mode: params.publishmode
 
-    if(workflow.profile.contains('conda'))  { conda "bioconductor-rtracklayer=1.54.0"}
-    if(workflow.profile.contains('docker')) { container "quay.io/biocontainers/bioconductor-rtracklayer:1.54.0--r41ha2fdcc6_1" }
-    if(workflow.profile.contains('singularity')) { container "quay.io/biocontainers/bioconductor-rtracklayer:1.54.0--r41ha2fdcc6_1" }
+    if(workflow.profile.contains('conda'))  { conda params.environment }
+    if(workflow.profile.contains('docker')) { container params.container }
+    if(workflow.profile.contains('singularity')) { container params.container }
 
     input:
     path(gtf)

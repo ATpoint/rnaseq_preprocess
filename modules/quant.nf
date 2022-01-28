@@ -8,7 +8,7 @@ process Quant {
 
     publishDir params.outdir, mode: params.publishmode
 
-    if(workflow.profile.contains('conda'))  { conda params.environment}
+    if(workflow.profile.contains('conda'))  { conda "salmon:1.6.0" }
     if(workflow.profile.contains('docker')) { container params.container }
     if(workflow.profile.contains('singularity')) { container params.container }
 

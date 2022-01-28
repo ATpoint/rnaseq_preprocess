@@ -4,9 +4,9 @@ process Tximport {
 
     publishDir params.outdir, mode: params.publishmode
 
-    if(workflow.profile.contains('conda'))  { conda "bioconductor-tximport=1.22.0"}
-    if(workflow.profile.contains('docker')) { container "quay.io/biocontainers/bioconductor-tximport:1.22.0--r41hdfd78af_0" }
-    if(workflow.profile.contains('singularity')) { container "quay.io/biocontainers/bioconductor-tximport:1.22.0--r41hdfd78af_0" }
+    if(workflow.profile.contains('conda'))  { conda params.environment }
+    if(workflow.profile.contains('docker')) { container params.container }
+    if(workflow.profile.contains('singularity')) { container params.container }
     
     input:
     path(quants) 
