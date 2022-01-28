@@ -214,46 +214,67 @@ workflow MULTIQC {
 // Define and run the main workflow
 //------------------------------------------------------------------------
 
+if(params.only_idx) {
+    skip_fastqc = true
+    skip_quant = true
+    skip_multiqc = true
+} else {
+    skip_fastqc = false
+    skip_quant = false
+    skip_multiqc = false
+}
+
+if(params.only_fastqc==true){
+    only_fastqc = true
+} else {
+    only_fastqc = false
+}
+
+if(params.skip_fastqc==true){
+    skip_fastqc == true
+} else {
+    skip_fastqc == false
+}
+        
 workflow {
 
+    //------------------------------------------
+    // Indexing
+    //------------------------------------------
     if(params.only_idx) {
         
         IDX()
-        only_fastqc = false
-        skip_fastqc = true
-        skip_quant = true
+        use_idx     = IDX.out.idx
+        use_tx2gene = IDX.out.tx2gene
 
     } else {
 
         if(ConvertBool2String(params.idx)==''){
 
-            if(params.only_fastqc==false){
+            if(only_fastqc==false) {
                 IDX()
+                use_idx     = IDX.out.idx
+                use_tx2gene = IDX.out.tx2gene
             }
-            
-        }
 
-        skip_fastqc = params.skip_fastqc
-        skip_quant  = false
+        } else {
+
+            use_idx     = params.idx
+            use_tx2gene = params.tx2gene
+
+        }
 
     }
 
-    if(params.only_fastqc) {
-        only_fastqc = true
-    } else only_fastqc = false
-
-    if(!skip_fastqc) FASTQC(ch_samplesheet)
+    //------------------------------------------
+    // Fastqc
+    //------------------------------------------
+    if(skip_fastqc==false) FASTQC(ch_samplesheet)
     
-    if(params.only_fastqc == false && skip_quant == false){
-
-        // either use premade index or make new one
-        if(ConvertBool2String(params.idx) != ''){
-            use_idx     = params.idx
-            use_tx2gene = params.tx2gene
-        } else {
-            use_idx     = IDX.out.idx
-            use_tx2gene = IDX.out.tx2gene
-        }
+    //------------------------------------------
+    // Quant
+    //------------------------------------------
+    if(only_fastqc == false && skip_quant == false){
 
         QUANT(ch_samplesheet, use_idx, use_tx2gene)
 
@@ -263,12 +284,18 @@ workflow {
 
     }
 
-    // summary report:
-    if(skip_fastqc == false && skip_quant == false && only_fastqc == false) combined_channel = FASTQC.out.fastqc.concat(quant_only_quant)
-    if((skip_fastqc == false && skip_quant == true) || (only_fastqc == true))  combined_channel = FASTQC.out.fastqc
-    if(skip_fastqc == true  && skip_quant == false) combined_channel = quant_only_quant        
+    //------------------------------------------
+    // Multiqc
+    //------------------------------------------
+    if(skip_multiqc==false){
+    
+        if(skip_fastqc == false && skip_quant == false && only_fastqc == false) combined_channel = FASTQC.out.fastqc.concat(quant_only_quant)
+        if((skip_fastqc == false && skip_quant == true) || (only_fastqc == true))  combined_channel = FASTQC.out.fastqc
+        if(skip_fastqc == true  && skip_quant == false) combined_channel = quant_only_quant        
 
-    if(skip_quant == false || skip_fastqc == false) MULTIQC(combined_channel.collect())
+        if(skip_quant == false || skip_fastqc == false) MULTIQC(combined_channel.collect())
+
+    }
 
 }
 
