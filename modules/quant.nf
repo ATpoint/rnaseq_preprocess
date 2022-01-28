@@ -27,9 +27,14 @@ process Quant {
     // hacking to make both single and paired input work
     def reads = r2.toString() == "null" ? "-r $r1" : "-1 $r1 -2 $r2"
 
+    // defaults for single- and paired:
+    if(r2.toString() == "null"){
+        additional = params.quant_additional.replaceAll('--gcBias', '')
+    } else additional = params.quant_additional
+
     """
     salmon quant --no-version-check --validateMappings \
-        -i $idx -o $sample_id -l $lib_type -p $task.cpus $params.additional $reads
+        -i $idx -o $sample_id -l $lib_type -p $task.cpus $additional $reads
     
     cat $tx2gene > ${sample_id}/tx2gene.txt
     """
