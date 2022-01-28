@@ -5,6 +5,8 @@ channels:
   - r
   - defaults
 dependencies:
-  - r-base
-  - salmon=1.6.0
-
+  - bioconductor-rtracklayer
+  - bioconductor-tximport
+  - fastqc
+  - multiqc=1.11
+  - r-jsonlite
