@@ -62,7 +62,7 @@ The output folders for the individual processes will be in a directory `rnaseq_p
 
 ## Resources
 
-THe indexing is hardcoded with 30GB of RAM and 6 CPUs. That memory is required as we use the genome as mapping decoy. The quantification is set with 25GB and 6 CPUs per sample. These process resources are defined in `nextflow.config`. If schedulers such as SLURM shall be used then this should be defined in `configs/schedulers.config`. We did put a SLURM default there that allows to use `-profile slurm` which submits a job to queue called "normal" with up to 8h walltime. See the Nextflow docs for [schedulers/executors](https://www.nextflow.io/docs/latest/executor.html). 
+The indexing is hardcoded with 30GB of RAM and 6 CPUs. That memory is required as we use the genome as mapping decoy. The quantification is set with 25GB and 6 CPUs per sample. These process resources are defined in `nextflow.config`. If schedulers such as SLURM shall be used then this should be defined in `configs/schedulers.config`. We did put a SLURM default there that allows to use `-profile slurm` which submits a job to queue called "normal" with up to 8h walltime. See the Nextflow docs for [schedulers/executors](https://www.nextflow.io/docs/latest/executor.html). 
 
 ## Software
 
