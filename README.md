@@ -56,7 +56,7 @@ Custom command line arguments can be passed to `salmon quant`(which runs the qua
 
 Prior to quantification a `fastqc` check is run. If only this shall be executed without indexing and quantification, e.g. to check whether adapter contamination is present that require trimming then use `--only_fastqc`.
 
-Once the quantification is done the pipeline will produce a gene-level count matrix for all samples using `tximport`.
+Once the quantification is done the pipeline will produce a gene-level count matrix for all samples using `tximport`. This count matrix can directly be used with applications such as `DESeq2` and `limma`. It uses the `lengthScaledTPM` option of `tximport` which adjusts the counts for differences in average transcript length between samples, so one does not need to pass a length offset matrix to the DE testing. The gene lengths are included as a column though (the median observed gene length across all samples) for normalizations such as RPKM which can be useful for visualization.
 
 The output folders for the individual processes will be in a directory `rnaseq_preprocess_results/`.
 
