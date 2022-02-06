@@ -15,6 +15,7 @@ def start_date = datePart + timePart
 
 println ""
 println "\u001B[33m$longline"
+println ""
 println "Pipeline:      rnaseq_preprocess"
 println "GitHub:        https://github.com/ATpoint/rnaseq_preprocess"
 println "Documentation: https://github.com/ATpoint/rnaseq_preprocess/README.md"
@@ -22,6 +23,7 @@ println "Author:        Alexander Toenges (@ATpoint)"
 println "Runname:       $workflow.runName"
 println "Profile:       $workflow.profile"
 println "Start:         $start_date"
+println ""
 println "$longline\u001B[0m"
 
 //------------------------------------------------------------------------
@@ -62,54 +64,122 @@ include{ MultiQC }      from './modules/multiqc'     addParams( outdir:         
 
 if(!params.only_idx){
 
-    // Validate that fastq files in samplesheet exist as files on disk
-
-    fastq_no_exist  = [:]
-    libtype_error   = [:]
-    
     if(!(new File(params.samplesheet)).exists()){
         println "\u001B[31m$longline"
         println "[VALIDATION ERROR]"
         println "The samplesheet does not exist!"
         println "$longline\u001B[0m"
         System.exit(1)
+    } else {
+        new File(params.samplesheet).withReader { line = it.readLine() } 
+        if(line != 'sample,r1,r2,libtype'){
+            println "\u001B[31m$longline"
+            println "[VALIDATION ERROR]"
+            println "The samplesheet header must be:"
+            println "sample,r1,r2,libtype -- so comma-separated, no whitespaces and exactly these titles!"
+            println "$longline\u001B[0m"
+            System.exit(1)
+        }
     }
 
     // Read samplesheet and replace relative paths by absolute ones
-    ch_samplesheet = Channel
+    ch_samplesheet_initial = Channel
         .fromPath(params.samplesheet)
         .splitCsv(header:true)
-        .map{ r -> 
+        .map {
 
-            sample = r['sample']
-
-            r1 = r['r1']
-                    .toString()
-                    .replaceAll('\\$baseDir|\\$\\{baseDir\\}', new String("${baseDir}/"))
-                    .replaceAll('\\$launchDir|\\$\\{launchDir\\}', new String("${launchDir}/"))
-                    .replaceAll('\\$projectDir|\\$\\{projectDir\\}', new String("${projectDir}/"))    
-
-            r2 = r['r2']
-                    .toString()
+            sample = it['sample']
+            
+            r1 = it['r1']
                     .replaceAll('\\$baseDir|\\$\\{baseDir\\}', new String("${baseDir}/"))
                     .replaceAll('\\$launchDir|\\$\\{launchDir\\}', new String("${launchDir}/"))
                     .replaceAll('\\$projectDir|\\$\\{projectDir\\}', new String("${projectDir}/"))
 
-            lt = r['libtype']                                                         
+            r2 = it['r2']
+                .replaceAll('\\$baseDir|\\$\\{baseDir\\}', new String("${baseDir}/"))
+                .replaceAll('\\$launchDir|\\$\\{launchDir\\}', new String("${launchDir}/"))
+                .replaceAll('\\$projectDir|\\$\\{projectDir\\}', new String("${projectDir}/"))
 
-            tuple(sample, r1, r2, lt)                    
+            lt = it['libtype']
 
-    }.groupTuple(by: 0)
-     .map { rr -> 
-                libtype = rr[3]
-                if(libtype.unique().size() == 1) lt = libtype.unique()
-                if(libtype.unique().size() > 1) lt = "error"
+            tuple(sample, r1, r2, lt)      
 
-            tuple(rr[0], rr[1], rr[2], lt)
+        }
+        
+        // validate:
+        not_existy = [:]
+        ch_samplesheet_initial.subscribe onNext: { 
+            
+            // validate r1 exists
+            if(!(new File(it[1]).exists())) not_existy[it[0]] = it[1]
 
-     }
+            // validate r2 exists:
+            if(r2!=''){
+                if(!(new File(it[2]).exists())) not_existy[it[0]] = it[2]
+            }
+            
 
-}    
+        }, onComplete: { 
+
+            // throw error and exit if any of the fastq files does not exist -- list which
+            if(not_existy.size() > 0){
+                println "\u001B[31m$longline"
+                println "[VALIDATION ERROR]"
+                println "These fastq paths do not exist as files:"
+                println not_existy.toString().replaceAll("\\[|\\]", "").replaceAll(", ", "\n").replaceAll(":", " => ")
+                println "$longline\u001B[0m"
+                System.exit(1)
+            } 
+
+        }
+
+    ch_samplesheet = ch_samplesheet_initial.groupTuple(by:0)
+
+    // validate that technical reps do have the same libtype
+    more_one_libtype = []
+    ch_samplesheet.subscribe onNext: { 
+        itl = it[3].unique()
+        if(itl.size() > 1){
+            more_one_libtype.add(it[0])
+        }
+    }, onComplete: { 
+        if(more_one_libtype.size() > 0){
+            println "\u001B[31m$longline"
+            println "[VALIDATION ERROR]"
+            println "These sample have > 1 fastq file (pair) but different libtypes:"
+            println more_one_libtype.toString().replaceAll("\\[|\\]", "").replaceAll(", ", "\n").replaceAll(":", " => ")
+            println "$longline\u001B[0m"
+            System.exit(1)
+        }
+    }     
+
+    // validate that there is no mix of single-end paired-end libraries
+    end_mixes = []
+    ch_samplesheet.subscribe onNext: { 
+        
+        rr1 = it[1] - ''      
+        rr2 = it[2] - ''
+
+        if(rr2.size() > 0){
+
+            if(rr1.size() != rr2.size()) end_mixes.add(it[0])
+
+        }
+        
+
+    }, onComplete: { 
+        if(end_mixes.size() > 0){
+            println "\u001B[31m$longline"
+            println "[VALIDATION ERROR]"
+            println "These sample have a mix of single-and paired-end libraries which is not supported!"
+            println end_mixes.toString().replaceAll("\\[|\\]", "").replaceAll(", ", "\n").replaceAll(":", " => ")
+            println "$longline\u001B[0m"
+            System.exit(1)
+        }
+    }  
+
+
+} // end of samplesheet validation   
 
 //------------------------------------------------------------------------      
 // Define subworkflows
@@ -299,11 +369,8 @@ workflow {
         println "End: $end_date"
         println "Results are in:"
         println od
-        //println "A summary file with cellnumbers per sample is at:"
-        //println "$smyfile"
         println "=========================================================================================================================\u001B[0m"
         println ""
     }
 
 }
-
