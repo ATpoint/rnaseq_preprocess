@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.1
+- add native samplesheet validation, checking for existance of the fastq files, that technical replicates have same libtype, no mix of single/paired-end data and that header line of samplesheet is correct
+
 ## v2.0
 - updated with [nf_blank](https://github.com/ATpoint/nf_blank) template
   - params validation with params listed in `schema.nf`
