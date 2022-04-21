@@ -73,7 +73,7 @@ The pipeline is fully containerized. Using either `-profile docker/singularity` 
 The typical command line would be:
 
 ```
-#/ here using singularity and slurm:
+#/ here using singularity and slurm with premade index:
 NXF_VER=21.10.6 \
     nextflow run main.nf \
     --publishmode 'copy' \
@@ -81,7 +81,8 @@ NXF_VER=21.10.6 \
     --samplesheet path/to/samplesheet.csv \
     -with-report indexing_report.html \
     -with-trace indexing_report.log \
-    -profile slurm,singularity
+    -profile slurm,singularity \
+    -bg > report.log
 
 #/ including the index building:
 NXF_VER=21.10.6 \
@@ -91,5 +92,7 @@ NXF_VER=21.10.6 \
     --samplesheet path/to/samplesheet.csv \
     -with-report report.html \
     -with-trace report.log \
-    -profile slurm,singularity    
+    -profile slurm,singularity \
+    -bg > report.log
+    
 ```    
