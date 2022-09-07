@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.2
+- updated software versions, see `CONTAINERLOG.md`
+- added a `schema.version` option to display the current pipeline version
+
 ## v2.1
 - add native samplesheet validation, checking for existance of the fastq files, that technical replicates have same libtype, no mix of single/paired-end data and that header line of samplesheet is correct
 

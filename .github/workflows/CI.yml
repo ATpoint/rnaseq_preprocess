@@ -56,18 +56,10 @@ jobs:
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --skip_fastqc
           
 
-      # full with conda
-      - name: TEST-CONDA
-        run: |
-          conda config --add channels r
-          conda config --add channels conda-forge
-          conda config --add channels bioconda
-          NXF_VER=21.10.6 nextflow run main.nf -profile conda,test_with_new_idx,test_resources
-
+      # full test with singularity
       - uses: eWaterCycle/setup-singularity@v7
         with:
           singularity-version: 3.8.0
     
-      # full with singularity
       - name: TEST-SINGULARITY
         run: NXF_VER=21.10.6 nextflow run main.nf -profile singularity,test_with_new_idx,test_resources

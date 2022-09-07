@@ -8,5 +8,5 @@ dependencies:
   - bioconductor-rtracklayer
   - bioconductor-tximport
   - fastqc
-  - multiqc=1.11
+  - multiqc
   - r-jsonlite
