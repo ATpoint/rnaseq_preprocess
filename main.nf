@@ -288,6 +288,7 @@ def skip_quant = params.only_idx==true ? true : false
 def skip_multiqc = params.only_idx==true ? true : false
 def run_idx = ConvertBool2String(params.idx)=='' ? true : false
 def only_fqc = params.only_fastqc==true ? true : false
+def skip_tximport = params.skip_tximport==true ? true : false
 
 workflow {
 
@@ -339,7 +340,7 @@ workflow {
 
         quant_only_quant = QUANT.out.quant.map { k -> k[1] }
 
-        TXIMPORT(quant_only_quant.collect(), params.tximport_name, use_tx2gene)
+        if(!skip_tximport) { TXIMPORT(quant_only_quant.collect(), params.tximport_name, use_tx2gene) }
 
     }
 

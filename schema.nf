@@ -12,7 +12,7 @@ def Map schema = [:] // don't change this line
 
 // generic options:
 schema.title1         = [title: 'GENERIC OPTIONS']
-schema.version        = [value: 'v2.2', type: 'string']
+schema.version        = [value: 'v2.2a', type: 'string']
 schema.min_nf_version = [value: '21.10.6', type: 'string', mandatory: true, allowed: '']
 schema.publishmode    = [value: 'copy', type: 'string', mandatory: true, allowed:['symlink', 'rellink', 'link', 'copy', 'copyNoFollow', 'move']]
 overall_outdir        = "$launchDir/rnaseq_preprocess_results/"
@@ -51,6 +51,7 @@ schema.quant_dir          = [value: "${overall_outdir}/salmonQuant/", type: 'str
 schema.quant_additional   = [value: '--gcBias --seqBias --posBias', type: 'string']
 schema.tximport_name      = [value: 'results_', type: 'string']
 schema.tximport_dir       = [value: "${overall_outdir}/tximport/", type: 'string']
+schema.skip_tximport      = [value: false, type: 'logical']
 
 // related to the container/environment for the R/Bioconductor part of this workflow
 schema.title4         = [title: 'CONTAINER/CONDA OPTIONS']

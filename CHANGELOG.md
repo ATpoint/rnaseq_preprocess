@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.2a
+- add `--skip_tximport` flag
+
 ## v2.2
 - updated software versions, see `CONTAINERLOG.md`
 - added a `schema.version` option to display the current pipeline version
