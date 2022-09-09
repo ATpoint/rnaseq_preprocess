@@ -219,8 +219,8 @@ workflow FASTQC {
 
         new_samplesheet = samplesheet.map { k ->
 
-            // maybe one day there will be optional inputs for DSL2 ...
-            r2 = k[2].toString() == "['']" ? "/" : k[2]
+             // maybe one day there will be optional inputs for DSL2 ...
+            r2 = k[2].toString().startsWith("[''") ? "/" : k[2]
             tuple(k[0], k[1], r2)
 
         }
@@ -245,7 +245,7 @@ workflow QUANT {
        new_samplesheet = samplesheet.map { k ->
 
             // maybe one day there will be optional inputs for DSL2 ...
-            r2 = k[2].toString() == "['']" ? "/" : k[2]
+            r2 = k[2].toString().startsWith("[''") ? "/" : k[2]
             tuple(k[0], k[1], r2, k[3])
 
         }

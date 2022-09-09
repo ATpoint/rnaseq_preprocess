@@ -12,7 +12,7 @@ def Map schema = [:] // don't change this line
 
 // generic options:
 schema.title1         = [title: 'GENERIC OPTIONS']
-schema.version        = [value: 'v2.2a', type: 'string']
+schema.version        = [value: 'v2.3', type: 'string']
 schema.min_nf_version = [value: '21.10.6', type: 'string', mandatory: true, allowed: '']
 schema.publishmode    = [value: 'copy', type: 'string', mandatory: true, allowed:['symlink', 'rellink', 'link', 'copy', 'copyNoFollow', 'move']]
 overall_outdir        = "$launchDir/rnaseq_preprocess_results/"
