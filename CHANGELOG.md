@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.3
+- use `stageAs` in fastqc and quant modules to deal with situation where several fastq files
+per sample have the same name (name collision)
+
 ## v2.2a
 - add `--skip_tximport` flag
 
