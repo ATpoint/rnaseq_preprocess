@@ -13,7 +13,7 @@ process Quant {
     if(workflow.profile.contains('singularity')) { container params.container }
 
     input:
-    tuple val(sample_id), path(r1), path(r2), val(libtype)
+    tuple val(sample_id), path(r1, stageAs: "?/*"), path(r2, stageAs: "?/*"), val(libtype)
     path(idx)     
     path(tx2gene)                    
 
@@ -25,7 +25,7 @@ process Quant {
     def lib_type = libtype.toString().replaceAll('\\[|\\]|\'', '')
     
     // hacking to make both single and paired input work
-    def reads = r2.toString() == "null" ? "-r $r1" : "-1 $r1 -2 $r2"
+    def reads = r2.baseName.toString() == "null" ? "-r $r1" : "-1 $r1 -2 $r2"
 
     // defaults for single- and paired:
     if(r2.toString() == "null"){

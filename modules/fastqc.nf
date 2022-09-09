@@ -15,7 +15,7 @@ process FastQC {
 
 
     input:
-    tuple val(sampleid), path(r1), path(r2)
+    tuple val(sampleid), path(r1, stageAs: "?/*"), path(r2, stageAs: "?/*")
             
     output:
     path("*.html"), emit: html
@@ -23,9 +23,9 @@ process FastQC {
     
     script: 
     // hacking to make both single and paired input work
-    def reads = r2.toString() == "null" ? r1 : "$r1 $r2"
+    def reads = r2.baseName.toString() == "null" ? r1 : "$r1 $r2"
     """
-    fastqc --threads 1 $reads
+    fastqc --threads 1 -o ./ $reads
     """     
 
 }
