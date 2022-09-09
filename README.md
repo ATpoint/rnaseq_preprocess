@@ -40,9 +40,10 @@ The quantification requires a samplesheet with four columns such as the one in t
 ```bash
 sample,r1,r2,libtype
 sample1,$baseDir/test/sample1_1.fastq.gz,$baseDir/test/sample1_2.fastq.gz,A
+sample1,$baseDir/test/test2/sample1_1.fastq.gz,$baseDir/test/test2/sample1_2.fastq.gz,A
 sample2,$baseDir/test/sample2_1.fastq.gz,$baseDir/test/sample2_2.fastq.gz,A
-sample2,$baseDir/test/sample2a_1.fastq.gz,$baseDir/test/sample2a_2.fastq.gz,A
 sample3,$baseDir/test/sample3.fastq.gz,,A
+sample3,$baseDir/test/test2/sample3.fastq.gz,,A
 ```
 
 The first row is the header which must be `sample,r1,r2,libtype`. These four fields are:
