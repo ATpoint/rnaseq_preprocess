@@ -12,7 +12,7 @@
 
 ## Introduction
 
-**rnaseq_preprocess** is an automated preprocessing pipeline for RNA-seq data implemented using [Nextflow](https://www.nextflow.io/) which is fully containerized to take care of all required software and ensure reproducibility. It performs an initial QC with `fastqc`, then builds a genome-decoyed index against a reference transcriptome and quantifies the fastq files against it with [salmon](https://salmon.readthedocs.io/en/latest/salmon.html). Eventually, the individual quantifications are summarized to the gene level with `tximport` returing a single matrix of raw counts. The `fastqc` and mapping statistics are summarized with `MultiQC`. The pipeline supports automated merging of technical/lane/sequencing replicates and auto-detects whether data are single- or paired-end. The starting point for the pipeline is a samplesheet.
+**rnaseq_preprocess** is a containerized NExtflow pipeline for RNA-seq quantification with `salmon`. It performs an initial QC with `fastqc`, builds a genome-decoyed index against a reference transcriptome and quantifies the fastq files against it with [salmon](https://salmon.readthedocs.io/en/latest/salmon.html). Eventually, the individual quantifications are summarized to the gene level with `tximport` returing a single matrix of raw counts and the effective gene lengths per sample. The `fastqc` and mapping statistics are summarized with `MultiQC`. The pipeline supports automated merging of technical/lane/sequencing replicates and auto-detects whether data are single- or paired-end. The starting point for the pipeline is a samplesheet with four columns, being the sample name, the paths to R1 and R2 fastq files and the salmon library type.
 
 # Details
 
