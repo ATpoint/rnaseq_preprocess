@@ -49,7 +49,6 @@ schema.title3             = [title: 'QUANTIFICATION OPTIONS']
 schema.samplesheet        = [value: '', type: 'string', pattern: /.*\.csv$/]
 schema.quant_dir          = [value: "${overall_outdir}/salmonQuant/", type: 'string']
 schema.quant_additional   = [value: '--gcBias --seqBias --posBias', type: 'string']
-schema.tximport_name      = [value: 'results_', type: 'string']
 schema.tximport_dir       = [value: "${overall_outdir}/tximport/", type: 'string']
 schema.skip_tximport      = [value: false, type: 'logical']
 

@@ -10,17 +10,16 @@ process Tximport {
     
     input:
     path(quants) 
-    val(outname)  // collected paths to all salmon dirs
     path(tx2gene)
         
     output:
-    path("*counts_genelevel.txt.gz")
-    //path("*_infreps.txt.gz"), optional: true
-            
+    path("counts.txt.gz")
+    path("lengths.txt.gz")
+                
     script: 
     def q = quants.join(',').toString()
     """
-    Rscript --vanilla $baseDir/bin/tximport.R $q $outname $tx2gene
+    Rscript --vanilla $baseDir/bin/tximport.R $q $tx2gene
     """      
 
 }

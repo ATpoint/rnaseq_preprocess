@@ -120,8 +120,8 @@ workflow VALIDATESSAMPLESHEET {
 
                 lt = it['libtype']
 
-                tuple(sample, r1, r2, lt)      
-
+                tuple(sample=sample, r1=r1, r2=r2, libtype=lt)      
+                
             }
             .groupTuple(by:0)
 
@@ -174,11 +174,10 @@ workflow TXIMPORT {
 
     take:
         salmons
-        outname
         tx2gene
 
     main:
-        Tximport(salmons, outname, tx2gene)
+        Tximport(salmons, tx2gene)
 }
 
 workflow MULTIQC {
@@ -216,7 +215,7 @@ workflow EVERYTHING {
             QUANT(VALIDATESSAMPLESHEET.out.samplesheet, use_idx, use_tx2gene)
             quant_for_multiqc = QUANT.out.quant
 
-            if(!params.skip_tximport) { TXIMPORT(QUANT.out.quant.collect(), params.tximport_name, use_tx2gene) }
+            if(!params.skip_tximport) { TXIMPORT(QUANT.out.quant.collect(), use_tx2gene) }
 
         } else quant_for_multiqc = Channel.empty()
 
