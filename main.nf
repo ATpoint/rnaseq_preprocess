@@ -120,7 +120,7 @@ workflow VALIDATESSAMPLESHEET {
 
                 lt = it['libtype']
 
-                tuple(sample=sample, r1=r1, r2=r2, libtype=lt)      
+                tuple(sample, r1, r2, lt)      
                 
             }
             .groupTuple(by:0)
@@ -154,15 +154,7 @@ workflow QUANT {
         
     main:
 
-       new_samplesheet = samplesheet.map { k ->
-
-            // maybe one day there will be optional inputs for DSL2 ...
-            r2 = k[2].toString().startsWith("[''") ? "/" : k[2]
-            tuple(k[0], k[1], r2, k[3])
-
-        }
-
-        Quant(new_samplesheet, idx, tx2gene)
+        Quant(samplesheet, idx, tx2gene)
 
     emit:
         quant   = Quant.out.quants
@@ -212,7 +204,9 @@ workflow EVERYTHING {
 
             use_idx     = params.idx
             use_tx2gene = params.tx2gene
+
             QUANT(VALIDATESSAMPLESHEET.out.samplesheet, use_idx, use_tx2gene)
+
             quant_for_multiqc = QUANT.out.quant
 
             if(!params.skip_tximport) { TXIMPORT(QUANT.out.quant.collect(), use_tx2gene) }

@@ -42,11 +42,6 @@ jobs:
       # full with docker
       - name: TEST-DOCKER_ALL
         run: |
-          # building new index and run pipeline
-          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_new_idx,test_resources
-          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_new_idx,test_resources --only_fastqc
-          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_new_idx,test_resources --skip_fastqc
-
           # building new index and exit
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_new_idx,test_resources --only_idx
 
