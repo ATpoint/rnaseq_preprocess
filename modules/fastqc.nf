@@ -13,19 +13,20 @@ process FastQC {
     if(workflow.profile.contains('docker')) { container params.container }
     if(workflow.profile.contains('singularity')) { container params.container }
 
-
     input:
-    tuple val(sampleid), path(r1, stageAs: "?/*"), path(r2, stageAs: "?/*")
+    tuple val(sampleid), path(r1, stageAs: "?/*"), path(r2, stageAs: "?/*"), val(libtype)
             
     output:
     path("*.html"), emit: html
     path("*.zip") , emit: zip
     
     script: 
-    // hacking to make both single and paired input work
-    def reads = r2.baseName.toString() == "null" ? r1 : "$r1 $r2"
+    r1_use = r1
+    r2_use = r2.baseName.toString().contains("null") ? 'false' : 'true'
+    
     """
-    fastqc --threads 1 -o ./ $reads
+    fastqc --threads 1 -o ./ $r1
+    if [[ $r2_use == 'true' ]]; then fastqc --threads 1 -o ./ $r2; fi
     """     
 
 }

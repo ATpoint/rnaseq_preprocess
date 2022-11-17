@@ -8,7 +8,7 @@ process Quant {
 
     publishDir params.outdir, mode: params.publishmode
 
-    if(workflow.profile.contains('conda'))  { conda "salmon=1.6.0" }
+    if(workflow.profile.contains('conda'))  { conda "salmon=1.9.0" }
     if(workflow.profile.contains('docker')) { container params.container }
     if(workflow.profile.contains('singularity')) { container params.container }
 
@@ -18,25 +18,25 @@ process Quant {
     path(tx2gene)                    
 
     output:
-    tuple val(sample_id), path(sample_id), emit: quants
-    path("$sample_id/tx2gene.txt"), emit: tx2gene
+    path(sample_id), emit: quants
+    path("$sample_id/tx2gene.txt.gz"), emit: tx2gene
     
     script:
-    def lib_type = libtype.toString().replaceAll('\\[|\\]|\'', '')
+
+    def lib_type = libtype[0]
     
     // hacking to make both single and paired input work
-    def reads = r2.baseName.toString() == "null" ? "-r $r1" : "-1 $r1 -2 $r2"
+    def reads = r2[0].baseName.toString().matches("null") ? "-r $r1" : "-1 $r1 -2 $r2"
 
     // defaults for single- and paired:
-    if(r2.toString() == "null"){
+    if(r2.baseName.toString().contains("/null")){
         additional = params.quant_additional.replaceAll('--gcBias', '')
     } else additional = params.quant_additional
+    println additional
 
     """
-    salmon quant --no-version-check --validateMappings \
-        -i $idx -o $sample_id -l $lib_type -p $task.cpus $additional $reads
-    
-    cat $tx2gene > ${sample_id}/tx2gene.txt
+    salmon quant --no-version-check --validateMappings -i $idx -o $sample_id -l $lib_type -p $task.cpus $additional $reads
+    cat $tx2gene | gzip > ${sample_id}/tx2gene.txt.gz
     """
 
 } 
