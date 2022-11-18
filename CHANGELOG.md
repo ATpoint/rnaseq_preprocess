@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.4
+- moved samplesheet validation to a process
+- updated container
+- report command lines and software versions for salmon and tximport, and emit to publishDir
+
 ## v2.3
 - use `stageAs` in fastqc and quant modules to deal with situation where several fastq files
 per sample have the same name (name collision)
