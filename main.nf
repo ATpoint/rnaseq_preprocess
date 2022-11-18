@@ -178,6 +178,10 @@ workflow TXIMPORT {
 
     main:
         Tximport(salmons, tx2gene)
+
+    emit:
+        vs      = Tximport.out.versions
+
 }
 
 workflow MULTIQC {
@@ -218,9 +222,19 @@ workflow EVERYTHING {
 
             quant_for_multiqc = QUANT.out.quant
 
-            CommandLines(QUANT.out.cl.collect(), QUANT.out.vs.collect())
+            if(!params.skip_tximport) { 
+                
+                TXIMPORT(QUANT.out.quant.collect(), use_tx2gene)
 
-            if(!params.skip_tximport) { TXIMPORT(QUANT.out.quant.collect(), use_tx2gene) }
+                CommandLines(QUANT.out.cl.collect(),
+                             QUANT.out.vs.concat(TXIMPORT.out.vs).collect())
+
+
+            } else {
+
+                CommandLines(QUANT.out.cl.collect(), QUANT.out.vs.collect())
+
+            }
 
         } else quant_for_multiqc = Channel.empty()
 
