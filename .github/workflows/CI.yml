@@ -1,14 +1,9 @@
-# CI tests using GitHub Actions
-
 name: CI
 
 on:
-  # trigger on push
   push:
-    # to all branches
     branches:
       - '**'
-    # ignore LICENSE, all .ignore and markdown files
     paths-ignore:
       - '*.md'
       - '*.ignore'
@@ -17,16 +12,11 @@ on:
     branches:
       - '**'
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   
-  #=======================================================================================================
-  
-  # Test via Docker and conda:
-  SC_PREPROCESS_CI_TESTS:
+  RNAseq_PREPROCESS_CI_TESTS:
     
     runs-on: ubuntu-latest
 
@@ -39,14 +29,8 @@ jobs:
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
 
-      # full with docker
       - name: TEST-DOCKER_ALL
         run: |
-          # building new index and run pipeline
-          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_new_idx,test_resources
-          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_new_idx,test_resources --only_fastqc
-          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_new_idx,test_resources --skip_fastqc
-
           # building new index and exit
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_new_idx,test_resources --only_idx
 
@@ -54,12 +38,11 @@ jobs:
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --only_fastqc
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --skip_fastqc
+          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --skip_tximport
           
-
-      # full test with singularity
       - uses: eWaterCycle/setup-singularity@v7
         with:
           singularity-version: 3.8.0
     
       - name: TEST-SINGULARITY
-        run: NXF_VER=21.10.6 nextflow run main.nf -profile singularity,test_with_new_idx,test_resources
+        run: NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources

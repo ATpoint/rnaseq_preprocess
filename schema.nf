@@ -17,6 +17,8 @@ schema.min_nf_version = [value: '21.10.6', type: 'string', mandatory: true, allo
 schema.publishmode    = [value: 'copy', type: 'string', mandatory: true, allowed:['symlink', 'rellink', 'link', 'copy', 'copyNoFollow', 'move']]
 overall_outdir        = "$launchDir/rnaseq_preprocess_results/"
 schema.outdir         = [value: overall_outdir, type: 'string', mandatory: true]
+schema.pipedir        = [value: "${overall_outdir}/pipeline/", type: 'string']
+
 
 // indexing:
 schema.title2          = [title: 'INDEXING OPTIONS']
@@ -49,13 +51,12 @@ schema.title3             = [title: 'QUANTIFICATION OPTIONS']
 schema.samplesheet        = [value: '', type: 'string', pattern: /.*\.csv$/]
 schema.quant_dir          = [value: "${overall_outdir}/salmonQuant/", type: 'string']
 schema.quant_additional   = [value: '--gcBias --seqBias --posBias', type: 'string']
-schema.tximport_name      = [value: 'results_', type: 'string']
 schema.tximport_dir       = [value: "${overall_outdir}/tximport/", type: 'string']
 schema.skip_tximport      = [value: false, type: 'logical']
 
 // related to the container/environment for the R/Bioconductor part of this workflow
 schema.title4         = [title: 'CONTAINER/CONDA OPTIONS']
-schema.container      = [value:'atpoint/rnaseq_preprocess:v1.5.0', type:'string', mandatory:true]
+schema.container      = [value:'atpoint/rnaseq_preprocess:v1.6.0', type:'string', mandatory:true]
 schema.environment    = [value: "$baseDir/environment.yml", type:'string', mandatory: true ]
 
 // --------------------------------------------------------------------------------------------------------------
