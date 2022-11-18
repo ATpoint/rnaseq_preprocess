@@ -17,6 +17,8 @@ schema.min_nf_version = [value: '21.10.6', type: 'string', mandatory: true, allo
 schema.publishmode    = [value: 'copy', type: 'string', mandatory: true, allowed:['symlink', 'rellink', 'link', 'copy', 'copyNoFollow', 'move']]
 overall_outdir        = "$launchDir/rnaseq_preprocess_results/"
 schema.outdir         = [value: overall_outdir, type: 'string', mandatory: true]
+schema.pipedir        = [value: "${overall_outdir}/pipeline/", type: 'string']
+
 
 // indexing:
 schema.title2          = [title: 'INDEXING OPTIONS']

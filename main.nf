@@ -63,6 +63,10 @@ include{ MultiQC }      from './modules/multiqc'     addParams( outdir:         
                                                                 publishmode:    params.publishmode,
                                                                 additional:     params.multiqc_additional)
 
+include{ CommandLines } from './modules/commandline' addParams( outdir:         params.pipedir,
+                                                                publishmode:    params.publishmode)
+                                                              
+
 //------------------------------------------------------------------------      
 // Define subworkflows
 //------------------------------------------------------------------------
@@ -159,6 +163,8 @@ workflow QUANT {
     emit:
         quant   = Quant.out.quants
         tx2gene = Quant.out.tx2gene
+        cl      = Quant.out.commandlines
+        vs      = Quant.out.versions
 
 }
 
@@ -208,6 +214,8 @@ workflow EVERYTHING {
             QUANT(VALIDATESSAMPLESHEET.out.samplesheet, use_idx, use_tx2gene)
 
             quant_for_multiqc = QUANT.out.quant
+
+            CommandLines(QUANT.out.cl.collect(), QUANT.out.vs.collect())
 
             if(!params.skip_tximport) { TXIMPORT(QUANT.out.quant.collect(), use_tx2gene) }
 
