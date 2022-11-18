@@ -19,6 +19,8 @@ process Idx {
     path("decoynames.txt")
     path("gentrome.fa.gz")
     path(idxname), emit: idx
+    path("commandlines.txt"), emit: commandlines
+    path("versions.txt"), emit: versions
     
     script: 
 
@@ -36,6 +38,8 @@ process Idx {
         -i $idxname \
         -p $task.cpus \
         $params.additional
+    cat .command.sh | awk NF | grep -v '^#!' > commandlines.txt
+    echo 'salmon:' \$(salmon --version | cut -d " " -f2) > versions.txt        
     """                
 
 }

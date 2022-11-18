@@ -93,6 +93,8 @@ workflow IDX {
     emit:
         idx     = this_idx
         tx2gene = this_tx2gene    
+        cl      = Idx.out.commandlines
+        vs      = Idx.out.versions
 
 }
 
@@ -196,6 +198,7 @@ workflow EVERYTHING {
         IDX()
         use_idx     = IDX.out.idx
         use_tx2gene = IDX.out.tx2gene
+        CommandLines(IDX.out.cl.collect(), IDX.out.vs.collect())
 
     } else {
 
