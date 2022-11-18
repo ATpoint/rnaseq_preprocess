@@ -38,6 +38,7 @@ jobs:
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --only_fastqc
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --skip_fastqc
+          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --skip_tximport
           
       - uses: eWaterCycle/setup-singularity@v7
         with:
