@@ -56,7 +56,7 @@ schema.skip_tximport      = [value: false, type: 'logical']
 
 // related to the container/environment for the R/Bioconductor part of this workflow
 schema.title4         = [title: 'CONTAINER/CONDA OPTIONS']
-schema.container      = [value:'atpoint/rnaseq_preprocess:v1.5.0', type:'string', mandatory:true]
+schema.container      = [value:'atpoint/rnaseq_preprocess:v1.6.0', type:'string', mandatory:true]
 schema.environment    = [value: "$baseDir/environment.yml", type:'string', mandatory: true ]
 
 // --------------------------------------------------------------------------------------------------------------
