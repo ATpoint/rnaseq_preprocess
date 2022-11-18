@@ -12,7 +12,7 @@
 
 ## Introduction
 
-**rnaseq_preprocess** is a Nextflow pipeline for RNA-seq quantification with `salmon`. The processing steps are `fastqc` first, then quantification, aggregation to gene level with `tximport` and a small summary report with `MultiQC`. The pipeline is containerized via Docker and Singularity. Outputs can be found in `rnaseq_preprocess_results/`.
+**rnaseq_preprocess** is a Nextflow pipeline for RNA-seq quantification with `salmon`. The processing steps are `fastqc` first, then quantification, aggregation to gene level with `tximport` and a small summary report with `MultiQC`. The pipeline is containerized via Docker and Singularity (container: `atpoint/rnaseq_preprocess/v1.6.0`). Outputs can be found in `rnaseq_preprocess_results/`.
 
 # Details
 
