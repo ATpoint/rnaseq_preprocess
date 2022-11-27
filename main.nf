@@ -228,7 +228,7 @@ workflow RNASEQ_PREPROCESS {
 
         cat_versions = Channel.empty()
         fastqc_versions = Channel.empty()
-        trim_versions = Chennel.empty()
+        trim_versions = Channel.empty()
         quant_versions = Channel.empty()
         tximport_versions = Channel.empty()
 
