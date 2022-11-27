@@ -11,6 +11,7 @@ bname    <- quants
 tx2gene  <- read.delim(args[2], header=TRUE)
 q        <- paste0(quants, "/quant.sf")
 names(q) <- bname
+q        <- q[order(names(q))]
 
 txi <- tximport::tximport(files=q, tx2gene=tx2gene, 
                           type="salmon", importer=read.delim,
