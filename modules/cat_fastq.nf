@@ -1,9 +1,9 @@
 process CatFastq {
 
+    tag "$meta.id"
+
     cpus   1
     memory 1.GB
-
-    shell = ['/bin/bash', '-euo', 'pipefail']
 
     errorStrategy 'finish'
 
