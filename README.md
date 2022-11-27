@@ -46,12 +46,15 @@ The pipeline runs via a [samplesheet](./test/samplesheet.csv) which is a CSV fil
 `sample,r1,r2,libtype`. The first column is the name of the sample, followed by the paths to the R1 and
 R2 files and the salmon [libtype](https://salmon.readthedocs.io/en/latest/library_type.html). If R2 is left blank
 then single-end mode is triggered for that sample. Multiple fastq files (lane/technical replicates) are supported.
-These must have the same sample column and will then be merged prior to quantification. The quantification runs with
-the salmon options `--gcBias --seqBias --posBias` (for single-end without `--gcBias`). Other options:
+These must have the same sample column and will then be merged prior to quantification. Optionally, a `seqtk` module can
+trim reads to a fixed read length, triggered by `--trim_reads` with a default of 75bp, controlled by `--trim_length`. 
+The quantification then runs with the salmon options `--gcBias --seqBias --posBias` (for single-end without `--gcBias`). Other options:
 
 `--idx`: path to the salmon index folder  
 `--tx2gene`: path to the tx2gene map matching transcripts to genes  
 `--samplesheet`: path to the input samplesheet  
+`--trim_reads`: logical, whether to trim reads to a fixed length  
+`--trim_length`: numeric, length for trimming  
 `--quant_additional`: additional options to `salmon quant` beyond `--gcBias --seqBias --posBias`  
 
 We hardcoded 25GB RAM and 6 CPUs for the quantification. On our HPC we use:
@@ -66,6 +69,8 @@ NXF_VER=21.10.6 nextflow run main.nf -profile singularity,slurm \
 
 `--merge_keep`: logical, whether to keep the merged fastq files  
 `--merge_dir`: folder inside the output directory to store the merged fastq files  
+`--trim_keep`: logical, whether to keep the trimmed fastq files  
+`--trim_dir`: folder inside the output directory to store the trimmed fastq files  
 `--skip_fastqc`: logical, whether to skip `fastqc`  
 `--only_fastqc`: logical, whether to only run `fastqc` and skip quantification  
 `--skip_multiqc`: logical, whether to skip `multiqc`  
