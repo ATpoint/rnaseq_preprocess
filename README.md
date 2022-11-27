@@ -20,20 +20,20 @@
 
 The indexing step must be run first and separately using the `--only_idx` flag. For this we need a reference transcriptome (gzipped), a reference genome as decoy (gzipped) and a GTF annotation file (gzipped).
 
-`--only_idx`: trigger the indexing process
-`--idx_name`: name of the produced index, default `idx`
-`--idx_dir`: name of the directory inside `rnaseq_preprocess_results/` storing the index, default `salmon_idx`
-`--idx_additional`: additional arguments to `salmon index` beyond the defaults which are `--no-version-check -t -d -i -p --gencode` 
-`--txtome`: path to the gzipped transcriptome fasta
-`--genome`: path to the gzipped genome fasta
-`--gtf`: path to the gzipped GTF file
-`--transcript_id`: name of GTF column storing transcript ID, default `transcript_id`
-`--transcript_name`: name of GTF column storing transcript name, default `transcript_name`
-`--gene_id`: name of GTF column storing gene ID, default `gene_id`
-`--gene_name`: name of GTF column storing gene name, default `gene_name`
-`--gene_type`: name of GTF column storing gene biotype, default `gene_type`
+`--only_idx`: trigger the indexing process  
+`--idx_name`: name of the produced index, default `idx`  
+`--idx_dir`: name of the directory inside `rnaseq_preprocess_results/` storing the index, default `salmon_idx`  
+`--idx_additional`: additional arguments to `salmon index` beyond the defaults which are `--no-version-check -t -d -i -p --gencode`  
+`--txtome`: path to the gzipped transcriptome fasta  
+`--genome`: path to the gzipped genome fasta  
+`--gtf`: path to the gzipped GTF file  
+`--transcript_id`: name of GTF column storing transcript ID, default `transcript_id`  
+`--transcript_name`: name of GTF column storing transcript name, default `transcript_name`  
+`--gene_id`: name of GTF column storing gene ID, default `gene_id`  
+`--gene_name`: name of GTF column storing gene name, default `gene_name`  
+`--gene_type`: name of GTF column storing gene biotype, default `gene_type`  
 
-For the indexing process, 30GB of RAM and 6 CPUs are required/hardcoded. On our HPC we use:
+For the indexing process, 30GB of RAM and 6 CPUs are required/hardcoded. On our HPC we use:  
 
 ```bash
 NXF_VER=21.10.6 nextflow run main.nf -profile singularity,slurm --only_idx \
@@ -50,10 +50,10 @@ then single-end mode is triggered for that sample. Multiple fastq files (lane/te
 These must have the same sample column and will then be merged prior to quantification. The quantification runs with
 the salmon options `--gcBias --seqBias --posBias` (for single-end without `--gcBias`). Other options:
 
-`--idx`: path to the salmon index folder
-`--tx2gene`: path to the tx2gene map matching transcripts to genes
-`--samplesheet`: path to the input samplesheetsamplesheet         = [value: '', type: 'string', pattern: /.*\.csv$/]
-`--quant_additional`: additional options to `salmon quant` beyond `--gcBias --seqBias --posBias`.
+`--idx`: path to the salmon index folder  
+`--tx2gene`: path to the tx2gene map matching transcripts to genes  
+`--samplesheet`: path to the input samplesheet  
+`--quant_additional`: additional options to `salmon quant` beyond `--gcBias --seqBias --posBias`  
 
 We hardcoded 25GB RAM and 6 CPUs for the quantification. On our HPC we use:
 
@@ -65,11 +65,11 @@ NXF_VER=21.10.6 nextflow run main.nf -profile singularity,slurm \
 
 **Other options**
 
-`--merge_keep`: logical, whether to keep the merged fastq files
-`--merge_dir`: folder inside the output directory to store the merged fastq files
-`--skip_fastqc`: logical, whether to skip `fastqc`
-`--only_fastqc`: logical, whether to only run `fastqc` and skip quantification
-`--skip_multiqc`: logical, whether to skip `multiqc`
-`--skip_tximport`: logical, whether to skip the `tximport` process downstream of the quantification
-`--fastqc_dir`: folder inside the output directory to store the fastqc results
-`--multiqc_dir`: folder inside the output directory to store the multiqc results
+`--merge_keep`: logical, whether to keep the merged fastq files  
+`--merge_dir`: folder inside the output directory to store the merged fastq files  
+`--skip_fastqc`: logical, whether to skip `fastqc`  
+`--only_fastqc`: logical, whether to only run `fastqc` and skip quantification  
+`--skip_multiqc`: logical, whether to skip `multiqc`  
+`--skip_tximport`: logical, whether to skip the `tximport` process downstream of the quantification  
+`--fastqc_dir`: folder inside the output directory to store the fastqc results  
+`--multiqc_dir`: folder inside the output directory to store the multiqc results  
