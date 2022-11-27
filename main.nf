@@ -296,7 +296,7 @@ workflow RNASEQ_PREPROCESS {
         } else {
 
             reads_for_quant = ch_fastq
-            trim_versions = Chennel.empty()
+            trim_versions = Channel.empty()
 
         }
 
