@@ -49,6 +49,8 @@ include { Tx2Gene } from './modules/tx2gene' addParams(outdir: params.idx_dir)
                                                              
 include{ FastQC } from './modules/fastqc' addParams(outdir: params.fastqc_dir)
 
+include{ Trim } from './modules/trim' addParams(outdir: params.trim_dir, keep: params.trim_keep)
+
 include{ Quant } from './modules/quant' addParams(outdir: params.quant_dir, additional: params.quant_additional)
 
 include{ Tximport } from './modules/tximport' addParams(outdir: params.tximport_dir)
@@ -159,6 +161,21 @@ workflow FASTQC {
 
 }
 
+workflow TRIM {
+
+    take:
+        samplesheet
+
+    main:
+
+        Trim(samplesheet)
+
+    emit:
+        fastq_tuple = Trim.out.fastq_tuple
+        versions = Trim.out.versions
+
+}
+
 workflow QUANT {
 
     take:
@@ -211,6 +228,7 @@ workflow RNASEQ_PREPROCESS {
 
         cat_versions = Channel.empty()
         fastqc_versions = Channel.empty()
+        trim_versions = Chennel.empty()
         quant_versions = Channel.empty()
         tximport_versions = Channel.empty()
 
@@ -254,18 +272,38 @@ workflow RNASEQ_PREPROCESS {
         // ----------------------------------------------------------------------------------------
 
         if(!params.skip_fastqc){
+
             FASTQC(ch_fastq)
             fastqc_for_multiqc = FASTQC.out.fastqc
             fastqc_versions = FASTQC.out.versions
+
         } else {
+
             fastqc_for_multiqc = Channel.empty()
             fastqc_versions = Channel.empty()
+
+        }
+
+        // ----------------------------------------------------------------------------------------
+        // Trim
+        // ----------------------------------------------------------------------------------------
+        if(params.trim_reads){
+
+            TRIM(ch_fastq)
+            reads_for_quant = TRIM.out.fastq_tuple
+            trim_versions = TRIM.out.versions
+
+        } else {
+
+            reads_for_quant = ch_fastq
+            trim_versions = Chennel.empty()
+
         }
 
         // ----------------------------------------------------------------------------------------
         // Quantification & Tximport
         // ----------------------------------------------------------------------------------------
-        QUANT(ch_fastq, use_idx)
+        QUANT(reads_for_quant, use_idx)
         quant_for_multiqc = QUANT.out.quant
         quant_versions = QUANT.out.versions
 
@@ -291,12 +329,13 @@ workflow RNASEQ_PREPROCESS {
     // ----------------------------------------------------------------------------------------
     // Command lines and software versions
     // ----------------------------------------------------------------------------------------
-    x_commands = idx_versions.concat(cat_versions, fastqc_versions, quant_versions, tximport_versions)
+    x_commands = idx_versions.concat(cat_versions, trim_versions, fastqc_versions, quant_versions, tximport_versions)
                  .map {it [1]}.flatten().collect()
 
     x_versions = idx_versions
                  .concat(cat_versions.first(), 
                          fastqc_versions.first(), 
+                         trim_versions.first(),
                          quant_versions.first(),
                          tximport_versions)
                 .map {it [0]}
