@@ -25,11 +25,12 @@ process Trim {
     tuple path("versions.txt"), path("command_lines.txt"), emit: versions
     
     script: 
+    def compress_level = params.keep ? '-6' : '--fast'
     if(!meta.single_end){
 
         """
-        seqtk trimfq -L $params.trim_length ${reads[0]} | gzip > ${meta.id}_R1_trimmed.fq.gz
-        seqtk trimfq -L $params.trim_length ${reads[1]} | gzip > ${meta.id}_R2_trimmed.fq.gz
+        seqtk trimfq -L $params.trim_length ${reads[0]} | gzip $compress_level > ${meta.id}_R1_trimmed.fq.gz
+        seqtk trimfq -L $params.trim_length ${reads[1]} | gzip $compress_level > ${meta.id}_R2_trimmed.fq.gz
 
         cat .command.sh > command_lines.txt
 
@@ -39,7 +40,7 @@ process Trim {
     } else {
 
         """
-        seqtk trimfq -L $params.trim_length ${reads} | gzip > ${meta.id}_R1_trimmed.fq.gz
+        seqtk trimfq -L $params.trim_length ${reads} | gzip $compress_level > ${meta.id}_R1_trimmed.fq.gz
 
         cat .command.sh > command_lines.txt
 
