@@ -39,33 +39,23 @@ evaluate(new File("${baseDir}/functions/validate_schema_params.nf"))
 // Load the modules and pass params
 //------------------------------------------------------------------------
 
-include{ Idx }          from './modules/index'      addParams(  outdir:         params.idx_dir,
-                                                                publishmode:    params.publishmode,
-                                                                additional:     params.idx_additional)
+include{ Idx } from './modules/index' addParams(outdir: params.idx_dir, additional: params.idx_additional)
 
-include{ ValidateSamplesheet }  from './modules/validatesamplesheet'
+include{ ValidateSamplesheet } from './modules/validatesamplesheet'
 
-include { Tx2Gene }     from './modules/tx2gene'    addParams(  outdir:         params.idx_dir,
-                                                                publishmode:    params.publishmode)
+include{ CatFastq } from './modules/cat_fastq' addParams(outdir: params.merge_dir, keep: params.merge_keep)
+
+include { Tx2Gene } from './modules/tx2gene' addParams(outdir: params.idx_dir)
                                                              
-include{ FastQC }       from './modules/fastqc'     addParams(  outdir:         params.fastqc_dir,
-                                                                publishmode:    params.publishmode,
-                                                                additional:     params.fastqc_additional)
+include{ FastQC } from './modules/fastqc' addParams(outdir: params.fastqc_dir)
 
-include{ Quant }        from './modules/quant'      addParams(  outdir:         params.quant_dir,
-                                                                publishmode:    params.publishmode,
-                                                                additional:     params.quant_additional)
+include{ Quant } from './modules/quant' addParams(outdir: params.quant_dir, additional: params.quant_additional)
 
-include{ Tximport }     from './modules/tximport'   addParams(  outdir:         params.tximport_dir,
-                                                                publishmode:    params.publishmode)
+include{ Tximport } from './modules/tximport' addParams(outdir: params.tximport_dir)
 
-include{ MultiQC }      from './modules/multiqc'     addParams( outdir:         params.multiqc_dir,
-                                                                publishmode:    params.publishmode,
-                                                                additional:     params.multiqc_additional)
+include{ MultiQC } from './modules/multiqc' addParams(outdir: params.multiqc_dir)
 
-include{ CommandLines } from './modules/commandline' addParams( outdir:         params.pipedir,
-                                                                publishmode:    params.publishmode)
-                                                              
+include{ CommandLines } from './modules/commandline' addParams( outdir: params.pipe_dir)                                                              
 
 //------------------------------------------------------------------------      
 // Define subworkflows
@@ -91,48 +81,65 @@ workflow IDX {
         this_tx2gene = Tx2Gene.out.tx2gene
             
     emit:
-        idx     = this_idx
-        tx2gene = this_tx2gene    
-        cl      = Idx.out.commandlines
-        vs      = Idx.out.versions
+        idx      = this_idx
+        tx2gene  = this_tx2gene    
+        versions = Idx.out.versions
 
 }
 
 workflow VALIDATESSAMPLESHEET {
 
     take: 
-        samplesheet_in
+        samplesheet_unvalidated
 
     main:
-        ValidateSamplesheet(samplesheet_in)
+        ValidateSamplesheet(samplesheet_unvalidated)
 
-    sout = ValidateSamplesheet.out.samplesheet
+    samplesheet = ValidateSamplesheet.out.samplesheet
            .splitCsv(header:true)
            .map {
-
-                sample = it['sample']
-                
+               
+                // Samplesheet allows Nextflow variables to be used, replace by absolute path
                 r1 = it['r1']
                         .replaceAll('\\$baseDir|\\$\\{baseDir\\}', new String("${baseDir}/"))
                         .replaceAll('\\$launchDir|\\$\\{launchDir\\}', new String("${launchDir}/"))
                         .replaceAll('\\$projectDir|\\$\\{projectDir\\}', new String("${projectDir}/"))
 
                 rx = it['r2']
-                    .replaceAll('\\$baseDir|\\$\\{baseDir\\}', new String("${baseDir}/"))
-                    .replaceAll('\\$launchDir|\\$\\{launchDir\\}', new String("${launchDir}/"))
-                    .replaceAll('\\$projectDir|\\$\\{projectDir\\}', new String("${projectDir}/"))
+                        .replaceAll('\\$baseDir|\\$\\{baseDir\\}', new String("${baseDir}/"))
+                        .replaceAll('\\$launchDir|\\$\\{launchDir\\}', new String("${launchDir}/"))
+                        .replaceAll('\\$projectDir|\\$\\{projectDir\\}', new String("${projectDir}/"))
 
-                r2 = rx.toString()=='' ? '/' : rx
+                r2 = rx.toString()=='' ? '.' : rx   
 
-                lt = it['libtype']
+                se = rx.toString()=='' ? true : false
 
-                tuple(sample, r1, r2, lt)      
+                // meta map inspired by nf-core
+                meta = [id:it['sample'], lib_type:it['libtype'], single_end: se]     
+                reads = [r1: r1, r2: r2]      
+                counter = [1]
+
+                tuple(meta, reads, counter)
                 
             }
             .groupTuple(by:0)
+            .map{ meta, grouped_reads, counter -> [ meta, grouped_reads.flatten(), counter ] }
+            .map{ meta, grouped_reads, counter -> 
+
+                    if(meta.single_end){
+                        reads = grouped_reads['r1'].flatten()
+                    } else {
+                        reads = [grouped_reads['r1'].flatten(), grouped_reads['r2'].flatten()].flatten()
+                    }
+
+                    // counter is > 1 if a sample has more than one fastq file per read, requiring a merge
+                    // before actual fastq processing
+                    [meta, reads, counter.size()]
+
+            }
 
     emit:
-        samplesheet = sout
+        samplesheet = samplesheet
 
 }
 
@@ -147,6 +154,7 @@ workflow FASTQC {
 
     emit:
         fastqc = FastQC.out.zip
+        versions = FastQC.out.versions
 
 
 }
@@ -156,17 +164,14 @@ workflow QUANT {
     take:
         samplesheet
         idx
-        tx2gene
         
     main:
 
-        Quant(samplesheet, idx, tx2gene)
+        Quant(samplesheet, idx)
 
     emit:
-        quant   = Quant.out.quants
-        tx2gene = Quant.out.tx2gene
-        cl      = Quant.out.commandlines
-        vs      = Quant.out.versions
+        quant   = Quant.out.quant
+        versions = Quant.out.versions
 
 }
 
@@ -180,7 +185,7 @@ workflow TXIMPORT {
         Tximport(salmons, tx2gene)
 
     emit:
-        vs      = Tximport.out.versions
+        versions = Tximport.out.versions
 
 }
 
@@ -195,56 +200,114 @@ workflow MULTIQC {
 
 }
 
-workflow EVERYTHING {
+workflow RNASEQ_PREPROCESS {
 
     if(params.only_idx==true) {
         
         IDX()
         use_idx     = IDX.out.idx
         use_tx2gene = IDX.out.tx2gene
-        CommandLines(IDX.out.cl.collect(), IDX.out.vs.collect())
+        idx_versions = IDX.out.versions
+
+        cat_versions = Channel.empty()
+        fastqc_versions = Channel.empty()
+        quant_versions = Channel.empty()
+        tximport_versions = Channel.empty()
 
     } else {
 
+        idx_versions = Channel.empty()
+        use_idx = params.idx
+        use_tx2gene = params.tx2gene
+
+        // ----------------------------------------------------------------------------------------
+        // Validate the provided samplesheet and merge fastq if necessary
+        // ----------------------------------------------------------------------------------------
+
         VALIDATESSAMPLESHEET(params.samplesheet)
 
-        if(params.skip_fastqc!=true){
-            FASTQC(VALIDATESSAMPLESHEET.out.samplesheet)
-            fastqc_for_multiqc = FASTQC.out
-        } else fastqc_for_multiqc = Channel.empty()
+        // Samples with > 1 fastq per read
+        VALIDATESSAMPLESHEET.out.samplesheet
+        .map {meta, reads, counter -> 
+        
+            if(counter>1) [meta, reads]
 
-        if(params.only_fastqc==false & params.only_idx==false){
+        }.set { ch_needMerge }
 
-            use_idx     = params.idx
-            use_tx2gene = params.tx2gene
+        CatFastq(ch_needMerge)
+        ch_merged = CatFastq.out.fastq_tuple
+        cat_versions = CatFastq.out.versions  
 
-            QUANT(VALIDATESSAMPLESHEET.out.samplesheet, use_idx, use_tx2gene)
+        // Samples with 1 fastq per read
+        VALIDATESSAMPLESHEET.out.samplesheet
+        .map {meta, reads, counter -> 
+            
+            if(counter==1) [meta, reads]
 
-            quant_for_multiqc = QUANT.out.quant
+        }.set { ch_noMerge }
 
-            if(!params.skip_tximport) { 
-                
-                TXIMPORT(QUANT.out.quant.collect(), use_tx2gene)
+        // This channel is now [meta, reads] and can go in all downstream processes that require fastq
+        ch_fastq = ch_noMerge.concat(ch_merged)
 
-                CommandLines(QUANT.out.cl.collect(),
-                             QUANT.out.vs.concat(TXIMPORT.out.vs).collect())
+        // ----------------------------------------------------------------------------------------
+        // Fastqc
+        // ----------------------------------------------------------------------------------------
 
+        if(!params.skip_fastqc){
+            FASTQC(ch_fastq)
+            fastqc_for_multiqc = FASTQC.out.fastqc
+            fastqc_versions = FASTQC.out.versions
+        } else {
+            fastqc_for_multiqc = Channel.empty()
+            fastqc_versions = Channel.empty()
+        }
 
-            } else {
+        // ----------------------------------------------------------------------------------------
+        // Quantification & Tximport
+        // ----------------------------------------------------------------------------------------
+        QUANT(ch_fastq, use_idx)
+        quant_for_multiqc = QUANT.out.quant
+        quant_versions = QUANT.out.versions
 
-                CommandLines(QUANT.out.cl.collect(), QUANT.out.vs.collect())
+        if(!params.skip_tximport){
 
-            }
+            TXIMPORT(QUANT.out.quant.collect(), use_tx2gene)
+            tximport_versions = TXIMPORT.out.versions
 
-        } else quant_for_multiqc = Channel.empty()
+        } else {
 
-        MULTIQC(fastqc_for_multiqc.concat(quant_for_multiqc).collect())
+            tximport_versions = Channel.empty()
 
+        }
+
+        // ----------------------------------------------------------------------------------------
+        // MultiQC
+        // ----------------------------------------------------------------------------------------
+
+        if(!params.skip_multiqc) { MULTIQC(fastqc_for_multiqc.concat(quant_for_multiqc).collect()) }
+       
     }
+
+    // ----------------------------------------------------------------------------------------
+    // Command lines and software versions
+    // ----------------------------------------------------------------------------------------
+    x_commands = idx_versions.concat(cat_versions, fastqc_versions, quant_versions, tximport_versions)
+                 .map {it [1]}.flatten().collect()
+
+    x_versions = idx_versions
+                 .concat(cat_versions.first(), 
+                         fastqc_versions.first(), 
+                         quant_versions.first(),
+                         tximport_versions)
+                .map {it [0]}
+                .flatten()
+                .collect()
+
+    CommandLines(x_commands, x_versions)
 
 }
 
-workflow { EVERYTHING() }
+workflow { RNASEQ_PREPROCESS() }
 
 def od = params.outdir
 workflow.onComplete {

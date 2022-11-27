@@ -1,32 +1,53 @@
 process FastQC {
 
-    tag "$sampleid"
+    tag "$meta.id"
 
     cpus   1
     memory 1.GB
 
     errorStrategy 'finish'
 
-    publishDir params.outdir, mode: params.publishmode
+    publishDir = [
+        path: params.outdir,
+        mode: params.publishmode,
+        saveAs: { filename -> filename.equals("versions.yml") || filename.equals("command_lines.txt") ? null : filename } 
+    ]
 
     if(workflow.profile.contains('conda'))  { conda params.environment }
     if(workflow.profile.contains('docker')) { container params.container }
     if(workflow.profile.contains('singularity')) { container params.container }
 
     input:
-    tuple val(sampleid), path(r1, stageAs: "?/*"), path(r2, stageAs: "?/*"), val(libtype)
+    tuple val(meta), path(reads, stageAs: "?/*")
             
     output:
     path("*.html"), emit: html
     path("*.zip") , emit: zip
+    tuple path("versions.txt"), path("command_lines.txt"), emit: versions
     
     script: 
-    r1_use = r1
-    r2_use = r2.baseName.toString().contains("null") ? 'false' : 'true'
-    
-    """
-    fastqc --threads 1 -o ./ $r1
-    if [[ $r2_use == 'true' ]]; then fastqc --threads 1 -o ./ $r2; fi
-    """     
+    if(!meta.single_end){
+
+        """
+        fastqc -o ./ -q ${reads[0]}
+        fastqc -o ./ -q ${reads[1]}
+
+        cat .command.sh > command_lines.txt
+
+        echo 'FastQC:' \$(fastqc --version | cut -d " " -f2) > versions.txt
+        """
+
+    } else {
+
+        """
+        fastqc -o ./ -q $reads
+
+        cat .command.sh > command_lines.txt
+
+        echo 'FastQC:' \$(fastqc --version | cut -d " " -f2) > versions.txt
+        
+        """
+
+    }
 
 }

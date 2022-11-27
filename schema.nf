@@ -16,7 +16,7 @@ schema.min_nf_version = [value: '21.10.6', type: 'string', mandatory: true, allo
 schema.publishmode    = [value: 'copy', type: 'string', mandatory: true, allowed:['symlink', 'rellink', 'link', 'copy', 'copyNoFollow', 'move']]
 overall_outdir        = "$launchDir/rnaseq_preprocess_results/"
 schema.outdir         = [value: overall_outdir, type: 'string', mandatory: true]
-schema.pipedir        = [value: "${overall_outdir}/pipeline/", type: 'string']
+schema.pipe_dir        = [value: "${overall_outdir}/pipeline_info/", type: 'string']
 
 
 // indexing:
@@ -32,30 +32,34 @@ schema.gene_id         = [value: 'gene_id', type: 'string']
 schema.gene_name       = [value: 'gene_name', type: 'string']
 schema.gene_type       = [value: 'gene_type', type: 'string']
 schema.idx_name        = [value: "idx", type: 'string']
-schema.idx_dir         = [value: "${overall_outdir}/salmonIndex/", type: 'string']
+schema.idx_dir         = [value: "${overall_outdir}/salmon_idx/", type: 'string']
 schema.idx_additional  = [value: '--gencode', type: 'string']
 schema.only_idx        = [value: false, type: 'logical']
 
+// combining technical replicates into a single fastq
+schema.title3            = [title: 'MERGE/FASTQ OPTIONS']
+schema.merge_dir         = [value: "${overall_outdir}/fastq_merged/", type: 'string']
+schema.merge_keep        = [value: false, type: 'logical']
+
 // fastqc/multiqc
-schema.title3             = [title: 'FASTQC/MULTIQC OPTIONS']
+schema.title4             = [title: 'FASTQC/MULTIQC OPTIONS']
 schema.skip_fastqc        = [value: false, type: 'logical']
+schema.skip_multiqc       = [value: false, type: 'logical']
 schema.fastqc_dir         = [value: "${overall_outdir}/fastqc/", type: 'string']
 schema.multiqc_dir        = [value: "${overall_outdir}/multiqc/", type: 'string']
-schema.fastqc_additional  = [value: '', type: 'string']
-schema.multiqc_additional = [value: '', type: 'string']
 schema.only_fastqc        = [value: false, type: 'logical']
 
 // samplesheet and quantification
-schema.title3             = [title: 'QUANTIFICATION OPTIONS']
+schema.title5             = [title: 'QUANTIFICATION/TXIMPORT OPTIONS']
 schema.samplesheet        = [value: '', type: 'string', pattern: /.*\.csv$/]
-schema.quant_dir          = [value: "${overall_outdir}/salmonQuant/", type: 'string']
+schema.quant_dir          = [value: "${overall_outdir}/salmon_quant/", type: 'string']
 schema.quant_additional   = [value: '--gcBias --seqBias --posBias', type: 'string']
 schema.tximport_dir       = [value: "${overall_outdir}/tximport/", type: 'string']
 schema.skip_tximport      = [value: false, type: 'logical']
 
 // related to the container/environment for the R/Bioconductor part of this workflow
-schema.title4         = [title: 'CONTAINER/CONDA OPTIONS']
-schema.container      = [value:'atpoint/rnaseq_preprocess:v1.6.0', type:'string', mandatory:true]
+schema.title6         = [title: 'CONTAINER/CONDA OPTIONS']
+schema.container      = [value: 'atpoint/rnaseq_preprocess:v1.6.0', type: 'string', mandatory: true]
 schema.environment    = [value: "$baseDir/environment.yml", type:'string', mandatory: true ]
 
 // --------------------------------------------------------------------------------------------------------------
