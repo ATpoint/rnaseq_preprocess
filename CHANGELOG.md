@@ -6,8 +6,11 @@
 - robustified reading from samplesheet
 - modules that use fastq now read a `[meta, reads]` map that includes the information on
 libtype and single-end/paired-end 
+- added a trimmer/seqtk module
 - all relevant modules now return a tuple with software versions and command lines that
 a dedicated process collects and publishes in a summary file at the end of the pipeline
+- updated container to v1.6.1
+- added CITATIONS.md
 
 ## v2.4
 - moved samplesheet validation to a process
