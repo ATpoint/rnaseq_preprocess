@@ -1,47 +1,43 @@
 process Quant {
 
-    tag "$sample_id"
+    tag "$meta.id"
 
     label 'process_quant'
 
     errorStrategy 'finish'
-
+    
     publishDir = [
         path: params.outdir,
         mode: params.publishmode,
-        saveAs: { filename -> filename.equals("versions.txt") ? null : filename } 
+        saveAs: { filename -> filename.equals("versions.yml") || filename.equals("command_lines.txt") ? null : filename } 
     ]
 
-    if(workflow.profile.contains('conda'))  { conda "salmon=1.9.0" }
     if(workflow.profile.contains('docker')) { container params.container }
     if(workflow.profile.contains('singularity')) { container params.container }
 
     input:
-    tuple val(sample_id), path(r1, stageAs: "?/*"), path(r2, stageAs: "?/*"), val(libtype)
+    tuple val(meta), path(reads)
     path(idx)     
-    path(tx2gene)                    
 
     output:
-    path(sample_id), emit: quants
-    path("$sample_id/tx2gene.txt.gz"), emit: tx2gene
-    path("commandlines.txt"), emit: commandlines
-    path("versions.txt"), emit: versions
+    path("$meta.id"), emit: quant
+    tuple path("versions.txt"), path("command_lines.txt"), emit: versions
     
     script:
-
-    def lib_type = libtype[0]
+    def lib_type = meta.lib_type
     
-    // hacking to make both single and paired input work
-    def reads = r2[0].baseName.toString().matches("null") ? "-r $r1" : "-1 $r1 -2 $r2"
+    // Make sure --gcBias not used in single-end data
+    def additional = meta.single_end ? params.quant_additional.replaceAll('--gcBias', '') : params.quant_additional
 
-    // Make sure gcBias not used in single-end data
-    def additional = r2[0].baseName.toString().matches("null") ? params.quant_additional.replaceAll('--gcBias', '') : params.quant_additional
+    use_reads = meta.single_end ? "-r $reads" : "-1 ${reads[0]} -2 ${reads[1]}"
 
     """
-    salmon quant --no-version-check --validateMappings -i $idx -o $sample_id -l $lib_type -p $task.cpus $additional $reads
-    cat $tx2gene | gzip > ${sample_id}/tx2gene.txt.gz
-    cat .command.sh | awk NF | grep -v '^#!' > commandlines.txt
+    salmon quant --no-version-check --validateMappings -i $idx -o ${meta.id} -l $lib_type -p $task.cpus $additional $use_reads
+
+    cat .command.sh > command_lines.txt
+
     echo 'salmon:' \$(salmon --version | cut -d " " -f2) > versions.txt
+
     """
 
 }

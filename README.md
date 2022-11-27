@@ -4,66 +4,74 @@
 
 ![CI](https://github.com/ATpoint/sc_preprocess/actions/workflows/CI.yml/badge.svg)
 [![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A521.10.6-23aa62.svg?labelColor=000000)](https://www.nextflow.io/)
-[![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
-[![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
-
-<br>
+[![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)  
 
 ## Introduction
 
-**rnaseq_preprocess** is a Nextflow pipeline for RNA-seq quantification with `salmon`. The processing steps are `fastqc` first, then quantification, aggregation to gene level with `tximport` and a small summary report with `MultiQC`. The pipeline is containerized via Docker and Singularity (container: `atpoint/rnaseq_preprocess/v1.6.0`). Outputs can be found in `rnaseq_preprocess_results/`.
+**rnaseq_preprocess** is a Nextflow pipeline for RNA-seq quantification with `salmon`. The processing steps are `fastqc` first, then quantification with `salmon`, aggregation to gene level with `tximport` and a small summary report with `MultiQC`. Multiple fastq files per sample are supported. These technical replicates will be merged prior to quantification. Optional trimming to a fixed read length is possible. The pipeline is containerized via Docker and Singularity (container: `atpoint/rnaseq_preprocess/v1.6.0`). Outputs can be found in `rnaseq_preprocess_results/` including command lines and software versions. The expected Nextflow version is 21.10.6.
 
-# Details
+## Details
 
-**Indexing**<br>
+**Indexing**
 
-The indexing step must be run separately first. For this we need a reference transcriptome (gzipped), a reference genome as decoy (gzipped) and a GTF annotation file (gzipped).
-The flags to provide these files are `--genome`, `--txtome` and `--gtf`. Also, for creating a transcripts to gene (tx2gene) map for gene level summarization after mapping the pipeline needs `--transcript_id`, `--transcript_name`, `--gene_id`, `--gene_name` and `--gene_type` which take the colnames of the GTF that store these attributes. The defaults assume GENCODE reference annotations, and if using them these options do not need to be provided. For this we also pass the `--gencode` flag to the `salmon` indexing process via `--idx_additional` like `--idx_additional '--gencode'`. Any other salmon indexing options can be passed via this flag as well such as non-standard kmer length, e.g. `idx_additional '--gencode -k 17'` which makes sense when quantifying very short reads such as the 2x25bp data.
-The output of the indexing process will be in the folder `rnaseq_preprocess_results/salmonIdx/name` where "name" is the value passed via `--idx_name` which defaults to simply "idx".
-The content of the `salmonIdx/idx/` folder is what the downstream quantification process expects via `--idx` and the created tx2gene map is expected via `--tx2gene`.
-We hardcoded 30GB of RAM and 6 CPUs as resources for this.
+The indexing step must be run first and separately using the `--only_idx` flag. For this we need a reference transcriptome (gzipped), a reference genome as decoy (gzipped) and a GTF annotation file (gzipped).
 
-**Command for our HPC**:
+`--only_idx`: trigger the indexing process  
+`--idx_name`: name of the produced index, default `idx`  
+`--idx_dir`: name of the directory inside `rnaseq_preprocess_results/` storing the index, default `salmon_idx`  
+`--idx_additional`: additional arguments to `salmon index` beyond the defaults which are `--no-version-check -t -d -i -p --gencode`  
+`--txtome`: path to the gzipped transcriptome fasta  
+`--genome`: path to the gzipped genome fasta  
+`--gtf`: path to the gzipped GTF file  
+`--transcript_id`: name of GTF column storing transcript ID, default `transcript_id`  
+`--transcript_name`: name of GTF column storing transcript name, default `transcript_name`  
+`--gene_id`: name of GTF column storing gene ID, default `gene_id`  
+`--gene_name`: name of GTF column storing gene name, default `gene_name`  
+`--gene_type`: name of GTF column storing gene biotype, default `gene_type`  
+
+For the indexing process, 30GB of RAM and 6 CPUs are required/hardcoded. On our HPC we use:  
+
 ```bash
-NXF_VER=21.10.6 nextflow run main.nf -profile singularity,slurm --publishmode 'copy' --only_idx \
+NXF_VER=21.10.6 nextflow run main.nf -profile singularity,slurm --only_idx \
     --genome path/to/genome.fa.gz --txtome path/to/txtome.fa.gz --gtf path/to/foo.gtf.gz \
     -with-report indexing_report.html -with-trace indexing_report.trace -bg > indexing_report.log
-```
+```    
 
-**Quantification**
+**Quantification/tximport**
 
-The quantification requires a samplesheet with four columns such as the one in the [test folder](test/samplesheet.csv):
+The pipeline runs via a [samplesheet](./test/samplesheet.csv) which is a CSV file with the columns:
+`sample,r1,r2,libtype`. The first column is the name of the sample, followed by the paths to the R1 and
+R2 files and the salmon [libtype](https://salmon.readthedocs.io/en/latest/library_type.html). If R2 is left blank
+then single-end mode is triggered for that sample. Multiple fastq files (lane/technical replicates) are supported.
+These must have the same sample column and will then be merged prior to quantification. Optionally, a `seqtk` module can
+trim reads to a fixed read length, triggered by `--trim_reads` with a default of 75bp, controlled by `--trim_length`. 
+The quantification then runs with the salmon options `--gcBias --seqBias --posBias` (for single-end without `--gcBias`). Other options:
+
+`--idx`: path to the salmon index folder  
+`--tx2gene`: path to the tx2gene map matching transcripts to genes  
+`--samplesheet`: path to the input samplesheet  
+`--trim_reads`: logical, whether to trim reads to a fixed length  
+`--trim_length`: numeric, length for trimming  
+`--quant_additional`: additional options to `salmon quant` beyond `--gcBias --seqBias --posBias`  
+
+We hardcoded 25GB RAM and 6 CPUs for the quantification. On our HPC we use:
 
 ```bash
-sample,r1,r2,libtype
-sample1,$baseDir/test/sample1_1.fastq.gz,$baseDir/test/sample1_2.fastq.gz,A
-sample1,$baseDir/test/test2/sample1_1.fastq.gz,$baseDir/test/test2/sample1_2.fastq.gz,A
-sample2,$baseDir/test/sample2_1.fastq.gz,$baseDir/test/sample2_2.fastq.gz,A
-sample3,$baseDir/test/sample3.fastq.gz,,A
-sample3,$baseDir/test/test2/sample3.fastq.gz,,A
-```
-
-The first row is the header which must be `sample,r1,r2,libtype`. These four fields are:
-- `sample`: The sample name, this can be any user-defined name (no whitespaces here!)    
-- `r1/r2`: The paths to the fastq files belonging to this sample. If this is single-end then leave `r2` empty, the pipeline will then detect this and trigger single-end mode.
-- `libtype`: The library type compatible with the `--libtype` argument of `salmon`. Default is automatic detection (`A`). For Illumina stranded paired-end data that is mostly `ISR`. See the [salmon docs](https://salmon.readthedocs.io/en/latest/library_type.html) for appropriate choices of your libraries. 
-
-Technical/lane replicates can provided here as well by using the **same** sample name (column1) for the fastq files being a technical replicate. In the above example `sample2` has two fastq file pairs that are a technical replicate. These will be merged internally prior to quantification. There is be a pre-flight samplesheet validation process that should capture corrupted samplesheets, detect potential duplicate files etc.
-
-For quantification, custom command line arguments can be passed to `salmon quant` (which runs the quantification) by `--quant_additional`, e.g. `--quant_additional '--numGibbsSamples 8'` to produce inferential replicates. By default the ipeline runs paired-end data with the `salmon` flags `--posBias --seqBias --gcBias` and single-end data with `--posBias --seqBias`. Use `--quant_additional ' '` to turn that off. In case of **end-tagged** data such as QuantSeq one should use `--quant_additional '\--noLengthCorrection'`.
-
-Prior to quantification a `fastqc` check is run. Options `--only_fastqc` and `--skip_fastqc` are possible.
-
-After quantification (unless `--skip_tximport`) the transcript abundance estimates are summarized to gene level using `tximport` with the `lengthScaledTPM` option of [tximport](https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html#Downstream_DGE_in_Bioconductor) so the counts are ready to go into any downstream DEG framework, and counts are already corrected for average transcript length.
-
-The quantification is hardcoded with 25GB RAM and 6 CPUs per sample which is sufficient for human and mouse genome-decoyed indices.
-
-Exact command lines for salmon and the software versions are emitted in the `pipeline` subfolder of the output directory.
-
-**Command for our HPC**:
-```bash
-NXF_VER=21.10.6 nextflow run main.nf -profile singularity,slurm --publishmode 'copy' \
+NXF_VER=21.10.6 nextflow run main.nf -profile singularity,slurm \
     --idx path/to/idx --tx2gene path/to/tx2gene.txt --samplesheet path/to/samplesheet.csv \
     -with-report quant_report.html -with-trace quant_report.trace -bg > quant_report.log
 ```
+
+**Other options**
+
+`--merge_keep`: logical, whether to keep the merged fastq files  
+`--merge_dir`: folder inside the output directory to store the merged fastq files  
+`--trim_keep`: logical, whether to keep the trimmed fastq files  
+`--trim_dir`: folder inside the output directory to store the trimmed fastq files  
+`--skip_fastqc`: logical, whether to skip `fastqc`  
+`--only_fastqc`: logical, whether to only run `fastqc` and skip quantification  
+`--skip_multiqc`: logical, whether to skip `multiqc`  
+`--skip_tximport`: logical, whether to skip the `tximport` process downstream of the quantification  
+`--fastqc_dir`: folder inside the output directory to store the fastqc results  
+`--multiqc_dir`: folder inside the output directory to store the multiqc results  

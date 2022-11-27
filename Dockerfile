@@ -1,14 +1,6 @@
-FROM condaforge/mambaforge:4.14.0-0
+FROM mambaorg/micromamba:1.0.0
 
-COPY ["environment.yml", "./"]
+COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yml /tmp/env.yaml
 
-RUN apt update && \
-    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends tzdata procps nano && \
-    apt-get clean && \
-    wget -q https://github.com/COMBINE-lab/salmon/releases/download/v1.9.0/salmon-1.9.0_linux_x86_64.tar.gz && \
-    tar zxf salmon-1.9.0_linux_x86_64.tar.gz
-
-ENV PATH=/salmon-1.9.0_linux_x86_64/bin:$PATH
-
-RUN mamba env update --name base --file environment.yml
-            
+RUN micromamba install -y -n base -f /tmp/env.yaml && \
+    micromamba clean --all --yes            

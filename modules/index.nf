@@ -4,9 +4,12 @@ process Idx {
 
     errorStrategy 'finish'
 
-    publishDir params.outdir, mode: params.publishmode
+    publishDir = [
+        path: params.outdir,
+        mode: params.publishmode,
+        saveAs: { filename -> filename.equals("versions.yml") || filename.equals("command_lines.txt") ? null : filename } 
+    ]
 
-    if(workflow.profile.contains('conda'))  { conda "salmon=1.6.0"}
     if(workflow.profile.contains('docker')) { container params.container }
     if(workflow.profile.contains('singularity')) { container params.container }
 
@@ -19,8 +22,7 @@ process Idx {
     path("decoynames.txt")
     path("gentrome.fa.gz")
     path(idxname), emit: idx
-    path("commandlines.txt"), emit: commandlines
-    path("versions.txt"), emit: versions
+    tuple path("versions.txt"), path("command_lines.txt"), emit: versions
     
     script: 
 
@@ -32,14 +34,11 @@ process Idx {
 
     cat $txtome $genome > $gentrome
 
-    salmon index --no-version-check \
-        -t $gentrome \
-        -d $decoynames \
-        -i $idxname \
-        -p $task.cpus \
-        $params.additional
-    cat .command.sh | awk NF | grep -v '^#!' > commandlines.txt
-    echo 'salmon:' \$(salmon --version | cut -d " " -f2) > versions.txt        
+    salmon index --no-version-check -t $gentrome -d $decoynames -i $idxname -p $task.cpus $params.additional
+
+    cat .command.sh > command_lines.txt
+
+    echo 'salmon:' \$(salmon --version | cut -d " " -f2) > versions.txt
     """                
 
 }
