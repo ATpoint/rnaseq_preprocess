@@ -35,10 +35,19 @@ jobs:
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_new_idx,test_resources --only_idx
 
           # using existing index
-          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --only_fastqc
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --skip_fastqc
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --skip_tximport
+          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources
+
+      - name: Commit software versions
+        run: |
+          git config --global user.name 'atpoint'
+          git config --global user.email 'atpoint@users.noreply.github.com'
+          mkdir -p misc && cp rnaseq_preprocess_results/pipeline_info/software_versions.txt misc/software_versions.txt
+          git add misc/software_versions.txt
+          git commit -am "current software versions"
+          git push          
           
       - uses: eWaterCycle/setup-singularity@v7
         with:
