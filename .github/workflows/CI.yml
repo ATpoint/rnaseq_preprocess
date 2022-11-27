@@ -47,7 +47,7 @@ jobs:
           git config --global user.email 'atpoint@users.noreply.github.com'
           mkdir -p misc && cp rnaseq_preprocess_results/pipeline_info/software_versions.txt misc/software_versions.txt
           # Check if there is anything to commit
-          git_check=$(git diff misc/software_versions.txt --exit-code > /dev/null && echo "NOTHING" || echo "LETSGO")
+          git_check=$(git diff --exit-code misc/software_versions.txt > /dev/null && echo "NOTHING" || echo "LETSGO")
           if [[ $git_check == "LETSGO" ]]; then
             git add misc/software_versions.txt
             git commit -am "current software versions"
