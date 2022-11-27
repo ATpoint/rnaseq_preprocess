@@ -8,8 +8,6 @@ process Tximport {
         saveAs: { filename -> filename.equals("versions.yml") || filename.equals("command_lines.txt") ? null : filename } 
     ]
 
-
-    if(workflow.profile.contains('conda'))  { conda params.environment }
     if(workflow.profile.contains('docker')) { container params.container }
     if(workflow.profile.contains('singularity')) { container params.container }
     

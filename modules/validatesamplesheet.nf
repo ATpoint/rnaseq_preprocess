@@ -5,7 +5,6 @@ process ValidateSamplesheet {
 
     errorStrategy 'finish'
 
-    if(workflow.profile.contains('conda'))  { conda params.environment }
     if(workflow.profile.contains('docker')) { container params.container }
     if(workflow.profile.contains('singularity')) { container params.container }
 

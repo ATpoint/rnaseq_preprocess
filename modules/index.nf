@@ -10,7 +10,6 @@ process Idx {
         saveAs: { filename -> filename.equals("versions.yml") || filename.equals("command_lines.txt") ? null : filename } 
     ]
 
-    if(workflow.profile.contains('conda'))  { conda "salmon=1.6.0"}
     if(workflow.profile.contains('docker')) { container params.container }
     if(workflow.profile.contains('singularity')) { container params.container }
 
