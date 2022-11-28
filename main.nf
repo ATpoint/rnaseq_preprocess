@@ -85,7 +85,7 @@ workflow IDX {
     emit:
         idx      = this_idx
         tx2gene  = this_tx2gene    
-        versions = Idx.out.versions
+        versions = Idx.out.versions.concat(Tx2Gene.out.versions)
 
 }
 
