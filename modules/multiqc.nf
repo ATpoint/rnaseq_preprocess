@@ -3,6 +3,8 @@ process MultiQC {
     cpus   1
     memory 1.GB
 
+    label 'process_multiqc'
+
     errorStrategy 'finish'
 
     publishDir params.outdir, mode: params.publishmode
