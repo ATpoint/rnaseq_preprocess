@@ -8,6 +8,22 @@ nextflow.enable.dsl=2
 
 def longline="========================================================================================================================="
 
+ANSI_RESET   = "\u001B[0m"
+ANSI_RED     = "\u001B[31m"
+ANSI_GREEN   = "\u001B[32m"
+ANSI_YELLOW  = "\u001B[33m"
+DASHEDDOUBLE = "=".multiply(121)
+DASHEDSINGLE = "-".multiply(121)
+    
+// Function for printing consistent error messages:
+def ErrorMessenger(base_message='', additional_message=''){
+    println("$ANSI_RED" + "$DASHEDDOUBLE")
+    println "[VALIDATION ERROR]"
+    println base_message
+    if(additional_message!='') { println("$additional_message") }
+    println("$DASHEDDOUBLE" + "$ANSI_RESET")
+}
+
 Date date = new Date()
 String datePart = date.format("yyyy-dd-MM -- ")
 String timePart = date.format("HH:mm:ss")
@@ -114,6 +130,23 @@ workflow VALIDATESSAMPLESHEET {
 
                 r2 = rx.toString()=='' ? '.' : rx   
 
+                // Make sure fastq file paths exist
+                is_error = false
+
+                r1_file = file(r1).exists()           
+                if(!r1_file){
+                    ErrorMessenger("$r1 does not exist")
+                    is_error = true
+                }
+
+                if(r2!=".") { 
+                    r2_file = file(r2).exists()
+                    if(!r1_file){
+                        ErrorMessenger("$r2 does not exist") 
+                        is_error = true
+                    }
+                }
+
                 se = rx.toString()=='' ? true : false
 
                 // meta map inspired by nf-core
@@ -121,7 +154,11 @@ workflow VALIDATESSAMPLESHEET {
                 reads = [r1: r1, r2: r2]      
                 counter = [1]
 
-                tuple(meta, reads, counter)
+                if(!is_error){
+                    return tuple(meta, reads, counter)
+                } else {
+                    return null
+                }
                 
             }
             .groupTuple(by:0)
@@ -242,6 +279,8 @@ workflow RNASEQ_PREPROCESS {
         // Validate the provided samplesheet and merge fastq if necessary
         // ----------------------------------------------------------------------------------------
 
+        sx = file(params.samplesheet, checkIfExists: true)
+        
         VALIDATESSAMPLESHEET(params.samplesheet)
 
         // Samples with > 1 fastq per read
