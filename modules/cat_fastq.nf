@@ -11,7 +11,7 @@ process CatFastq {
         path: params.outdir,
         mode: params.publishmode,
         saveAs: { filename -> !(filename.endsWith("fq.gz") & params.keep) ||
-                               filename.equals("versions.yml") || filename.equals("command_lines.txt") ? null : filename } 
+                               filename.equals("versions.txt") || filename.equals("command_lines.txt") ? null : filename } 
     ]
 
     if(workflow.profile.contains('docker')) { container params.container }

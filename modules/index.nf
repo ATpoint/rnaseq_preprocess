@@ -7,7 +7,7 @@ process Idx {
     publishDir = [
         path: params.outdir,
         mode: params.publishmode,
-        saveAs: { filename -> filename.equals("versions.yml") || filename.equals("command_lines.txt") ? null : filename } 
+        saveAs: { filename -> filename.equals("versions.txt") || filename.equals("command_lines.txt") ? null : filename } 
     ]
 
     if(workflow.profile.contains('docker')) { container params.container }
