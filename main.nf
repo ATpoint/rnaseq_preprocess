@@ -287,7 +287,7 @@ workflow RNASEQ_PREPROCESS {
         // ----------------------------------------------------------------------------------------
         // Trim
         // ----------------------------------------------------------------------------------------
-        if(params.trim_reads){
+        if(params.trim_reads & !params.only_fastqc){
 
             TRIM(ch_fastq)
             reads_for_quant = TRIM.out.fastq_tuple
@@ -303,17 +303,27 @@ workflow RNASEQ_PREPROCESS {
         // ----------------------------------------------------------------------------------------
         // Quantification & Tximport
         // ----------------------------------------------------------------------------------------
-        QUANT(reads_for_quant, use_idx)
-        quant_for_multiqc = QUANT.out.quant
-        quant_versions = QUANT.out.versions
+        if(!params.only_fastqc) {
+            
+            QUANT(reads_for_quant, use_idx)
+            quant_for_multiqc = QUANT.out.quant
+            quant_versions = QUANT.out.versions
 
-        if(!params.skip_tximport){
+            if(!params.skip_tximport){
 
-            TXIMPORT(QUANT.out.quant.collect(), use_tx2gene)
-            tximport_versions = TXIMPORT.out.versions
+                TXIMPORT(QUANT.out.quant.collect(), use_tx2gene)
+                tximport_versions = TXIMPORT.out.versions
+
+            } else {
+
+                tximport_versions = Channel.empty()
+
+            }
 
         } else {
 
+            quant_for_multiqc = Channel.empty()
+            quant_versions = Channel.empty()
             tximport_versions = Channel.empty()
 
         }
