@@ -9,7 +9,7 @@
 
 ## Introduction
 
-**rnaseq_preprocess** is a Nextflow pipeline for RNA-seq quantification with `salmon`. The processing steps are `fastqc` first, then quantification with `salmon`, aggregation to gene level with `tximport` and a small summary report with `MultiQC`. Multiple fastq files per sample are supported. These technical replicates will be merged prior to quantification. Optional trimming to a fixed read length is possible. The pipeline is containerized via Docker and Singularity (container: `atpoint/rnaseq_preprocess/v1.6.0`). Outputs can be found in `rnaseq_preprocess_results/` including command lines and software versions. The expected Nextflow version is 21.10.6.
+**rnaseq_preprocess** is a Nextflow pipeline for RNA-seq quantification with `salmon`. The processing steps are `fastqc` first, then quantification with `salmon`, aggregation to gene level with `tximport` and a small summary report with `MultiQC`. Multiple fastq files per sample are supported. These technical replicates will be merged prior to quantification. Optional trimming to a fixed read length is possible. The pipeline is containerized via Docker and Singularity. Outputs can be found in `rnaseq_preprocess_results/` including command lines and software versions. The expected Nextflow version is 21.10.6.
 
 Run the test profile to see which output is being produced. Downloading the Docker image may take a minute or two:
 
