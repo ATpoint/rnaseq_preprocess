@@ -39,7 +39,7 @@ The indexing step must be run first and separately using the `--only_idx` flag. 
 For the indexing process, 30GB of RAM and 6 CPUs are required/hardcoded. On our HPC we use:  
 
 ```bash
-NXF_VER=21.10.6 nextflow run main.nf -profile singularity,slurm --only_idx \
+NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main  -profile singularity,slurm --only_idx \
     --genome path/to/genome.fa.gz --txtome path/to/txtome.fa.gz --gtf path/to/foo.gtf.gz \
     -with-report indexing_report.html -with-trace indexing_report.trace -bg > indexing_report.log
 ```    
@@ -67,7 +67,7 @@ Other options:
 We hardcoded 25GB RAM and 6 CPUs for the quantification. On our HPC we use:
 
 ```bash
-NXF_VER=21.10.6 nextflow run main.nf -profile singularity,slurm \
+NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main -profile singularity,slurm \
     --idx path/to/idx --tx2gene path/to/tx2gene.txt --samplesheet path/to/samplesheet.csv \
     -with-report quant_report.html -with-trace quant_report.trace -bg > quant_report.log
 ```
