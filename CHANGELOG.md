@@ -11,6 +11,7 @@ libtype and single-end/paired-end
 a dedicated process collects and publishes in a summary file at the end of the pipeline
 - updated container to v1.6.1
 - added CITATIONS.md
+- check if files in samplesheet exist
 
 ## v2.4
 - moved samplesheet validation to a process
