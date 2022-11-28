@@ -5,7 +5,7 @@ process Tximport {
     publishDir = [
         path: params.outdir,
         mode: params.publishmode,
-        saveAs: { filename -> filename.equals("versions.yml") || filename.equals("command_lines.txt") ? null : filename } 
+        saveAs: { filename -> filename.equals("versions.txt") || filename.equals("command_lines.txt") ? null : filename } 
     ]
 
     if(workflow.profile.contains('docker')) { container params.container }
@@ -18,12 +18,14 @@ process Tximport {
     output:
     path("counts.txt.gz")
     path("lengths.txt.gz")
+    path("tx2gene.txt.gz")
     tuple path("versions.txt"), path("command_lines.txt"), emit: versions
                 
     script: 
     def q = quants.join(',').toString()
     """
     Rscript --vanilla $baseDir/bin/tximport.R $q $tx2gene
+    gzip -c $tx2gene > tx2gene.txt.gz
 
     cat .command.sh > command_lines.txt
     
