@@ -64,7 +64,7 @@ Other options:
 `--trim_length`: numeric, length for trimming  
 `--quant_additional`: additional options to `salmon quant` beyond `--gcBias --seqBias --posBias`  
 
-We hardcoded 25GB RAM and 6 CPUs for the quantification. On our HPC we use:
+We hardcoded 30GB RAM and 6 CPUs for the quantification. On our HPC we use:
 
 ```bash
 NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main -profile singularity,slurm \
