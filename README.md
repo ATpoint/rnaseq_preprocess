@@ -11,6 +11,12 @@
 
 **rnaseq_preprocess** is a Nextflow pipeline for RNA-seq quantification with `salmon`. The processing steps are `fastqc` first, then quantification with `salmon`, aggregation to gene level with `tximport` and a small summary report with `MultiQC`. Multiple fastq files per sample are supported. These technical replicates will be merged prior to quantification. Optional trimming to a fixed read length is possible. The pipeline is containerized via Docker and Singularity (container: `atpoint/rnaseq_preprocess/v1.6.0`). Outputs can be found in `rnaseq_preprocess_results/` including command lines and software versions. The expected Nextflow version is 21.10.6.
 
+Run the test profile to see which output is being produced. Downloading the Docker image may take a minute or two:
+
+```bash
+NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main -profile docker,test_with_existing_idx,test_resources
+```
+
 ## Details
 
 **Indexing**
@@ -46,7 +52,10 @@ R2 files and the salmon [libtype](https://salmon.readthedocs.io/en/latest/librar
 then single-end mode is triggered for that sample. Multiple fastq files (lane/technical replicates) are supported.
 These must have the same sample column and will then be merged prior to quantification. Optionally, a `seqtk` module can
 trim reads to a fixed read length, triggered by `--trim_reads` with a default of 75bp, controlled by `--trim_length`. 
-The quantification then runs with the salmon options `--gcBias --seqBias --posBias` (for single-end without `--gcBias`). Other options:
+The quantification then runs with the salmon options `--gcBias --seqBias --posBias` (for single-end without `--gcBias`). 
+Transcript abundance estimates from `salmon` are then summarized to the gene level using [tximport](https://bioconductor.org/packages/devel/bioc/vignettes/tximport/inst/doc/tximport.html#Salmon) with its `lengthScaledTPM` option. That means returned gene-level counts are already corrected for average transcript length and can go into any downstream DEG analysis, for example with `limma`. Both a matrix of counts and effective gene lengths is returned.
+
+Other options:
 
 `--idx`: path to the salmon index folder  
 `--tx2gene`: path to the tx2gene map matching transcripts to genes  
