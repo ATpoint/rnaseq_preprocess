@@ -16,14 +16,9 @@ DASHEDDOUBLE = "=".multiply(121)
 DASHEDSINGLE = "-".multiply(121)
     
 // Function for printing consistent error messages:
-def ErrorMessenger(base_message='', additional_message=''){
-    println("$ANSI_RED" + "$DASHEDDOUBLE")
-    println "[VALIDATION ERROR]"
-    println base_message
-    if(additional_message!='') { println("$additional_message") }
-    println("$DASHEDDOUBLE" + "$ANSI_RESET")
-}
+include{ ErrorMessenger } from './functions/validate_schema_params.nf'
 
+// Date for intro message
 Date date = new Date()
 String datePart = date.format("yyyy-dd-MM -- ")
 String timePart = date.format("HH:mm:ss")
