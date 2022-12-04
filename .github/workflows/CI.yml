@@ -29,6 +29,7 @@ jobs:
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
 
+      # Test via docker
       - name: TEST-DOCKER_ALL
         run: |
           # building new index and exit
@@ -54,9 +55,16 @@ jobs:
             git push          
           fi            
           
+      # Test via singularity    
       - uses: eWaterCycle/setup-singularity@v7
         with:
           singularity-version: 3.8.0
     
       - name: TEST-SINGULARITY
         run: NXF_VER=21.10.6 nextflow run main.nf -profile singularity,test_with_existing_idx,test_resources
+      
+      # Test via podman
+      - uses: redhat-actions/podman-login@v1
+      - name: TEST-PODMAN
+        run: NXF_VER=21.10.6 nextflow run main.nf -profile podman,test_with_existing_idx,test_resources
+          
