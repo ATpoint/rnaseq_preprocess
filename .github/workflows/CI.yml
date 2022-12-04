@@ -59,4 +59,4 @@ jobs:
           singularity-version: 3.8.0
     
       - name: TEST-SINGULARITY
-        run: NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources
+        run: NXF_VER=21.10.6 nextflow run main.nf -profile singularity,test_with_existing_idx,test_resources
