@@ -5,8 +5,7 @@ process ValidateSamplesheet {
 
     errorStrategy 'finish'
 
-    if(workflow.profile.contains('docker')) { container params.container }
-    if(workflow.profile.contains('singularity')) { container params.container }
+    container params.container
 
     input:
     path(samplesheet)
