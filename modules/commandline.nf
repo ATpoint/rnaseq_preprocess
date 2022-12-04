@@ -6,8 +6,7 @@ process CommandLines {
 
     publishDir params.outdir, mode: params.publishmode
 
-    if(workflow.profile.contains('docker')) { container params.container }
-    if(workflow.profile.contains('singularity')) { container params.container }
+    container params.container
 
     input:
     path(commands, stageAs: "?/*")

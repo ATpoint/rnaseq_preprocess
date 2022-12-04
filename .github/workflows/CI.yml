@@ -29,6 +29,7 @@ jobs:
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
 
+      # Test via docker
       - name: TEST-DOCKER_ALL
         run: |
           # building new index and exit
@@ -52,11 +53,21 @@ jobs:
             git add misc/software_versions.txt
             git commit -am "current software versions"
             git push          
-          fi            
+          fi      
+
+      # Test via podman
+      - name: TEST-PODMAN
+        run: |
+          sudo apt-get update \
+          && sudo apt-get -y upgrade \
+          && sudo apt-get -y install podman \
+          && NXF_VER=21.10.6 nextflow run main.nf -profile podman,test_with_existing_idx,test_resources          
           
+      # Test via singularity    
       - uses: eWaterCycle/setup-singularity@v7
         with:
           singularity-version: 3.8.0
     
       - name: TEST-SINGULARITY
-        run: NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources
+        run: NXF_VER=21.10.6 nextflow run main.nf -profile singularity,test_with_existing_idx,test_resources
+          
