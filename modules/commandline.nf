@@ -18,7 +18,7 @@ process CommandLines {
         
     script:
     """
-    cat $commands | awk NF | grep -vE '.command.sh|> versions.txt|^#!' | sort --ignore-case -u > command_lines.txt
+    cat $commands | awk NF | grep -vE '.command.sh|> versions.txt|^#!' | sort --ignore-case -u | sed 's/  */ /g' > command_lines.txt
     cat $versions | awk NF | sort --ignore-case -u > software_versions.txt
     """
 
