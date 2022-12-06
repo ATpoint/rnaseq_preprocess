@@ -56,12 +56,12 @@ jobs:
           fi      
 
       # Test via podman
-      - name: TEST-PODMAN
-        run: |
-          sudo apt-get update \
-          && sudo apt-get -y upgrade \
-          && sudo apt-get -y install podman \
-          && NXF_VER=21.10.6 nextflow run main.nf -profile podman,test_with_existing_idx,test_resources          
+      #- name: TEST-PODMAN
+      #  run: |
+      #    sudo apt-get update \
+      #    && sudo apt-get -y upgrade \
+      #    && sudo apt-get -y install podman \
+      #    && NXF_VER=21.10.6 nextflow run main.nf -profile podman,test_with_existing_idx,test_resources          
           
       # Test via singularity    
       - uses: eWaterCycle/setup-singularity@v7
