@@ -15,6 +15,8 @@ Run the test profile to see which output is being produced. Downloading the Dock
 NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main -profile docker,test_with_existing_idx,test_resources
 ```
 
+See the [misc](misc/) folder which contains the software versions used in the pipeline and the exact command lines. In case of running the pipeline this output will be in the `pipeline_info` folder of the output directory.
+
 ## Details
 
 **Indexing**
