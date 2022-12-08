@@ -31,7 +31,8 @@ process Trim {
         seqtk trimfq -L $params.trim_length ${reads[0]} | gzip $compress_level > ${meta.id}_R1_trimmed.fq.gz
         seqtk trimfq -L $params.trim_length ${reads[1]} | gzip $compress_level > ${meta.id}_R2_trimmed.fq.gz
 
-        cat .command.sh > command_lines.txt
+        echo ${task.process}:${meta.id} > command_lines.txt
+        cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
 
         echo 'seqtk:' \$(seqtk 2>&1 | head -n 3 | tail -n 1 | cut -d " " -f2) > versions.txt
         """
@@ -41,7 +42,8 @@ process Trim {
         """
         seqtk trimfq -L $params.trim_length ${reads} | gzip $compress_level > ${meta.id}_R1_trimmed.fq.gz
 
-        cat .command.sh > command_lines.txt
+        echo ${task.process}:${meta.id} > command_lines.txt
+        cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
 
         echo 'seqtk:' \$(seqtk 2>&1 | head -n 3 | tail -n 1 | cut -d " " -f2) > versions.txt
         

@@ -62,7 +62,8 @@ process CatFastq {
         """
         cat ${r1} > ${r1_cat}
 
-        cat .command.sh > command_lines.txt
+        echo ${task.process}:${meta.id} > command_lines.txt
+        cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
 
         echo 'cat:' \$(cat --version | head -n 1 | cut -d ")" -f2) > versions.txt
         """     
@@ -73,7 +74,8 @@ process CatFastq {
         cat ${r1} > ${r1_cat}
         cat ${r2} > ${r2_cat}
 
-        cat .command.sh > command_lines.txt
+        echo ${task.process}:${meta.id} > command_lines.txt
+        cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
 
         echo 'cat:' \$(cat --version | head -n 1 | cut -d ")" -f2) > versions.txt
         """     
