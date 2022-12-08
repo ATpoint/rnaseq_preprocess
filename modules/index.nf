@@ -35,8 +35,7 @@ process Idx {
 
     salmon index --no-version-check -t $gentrome -d $decoynames -i $idxname -p $task.cpus $params.additional
 
-    echo ${task.process}: > command_lines.txt
-    cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
+    cat .command.sh > command_lines.txt
 
     echo 'salmon:' \$(salmon --version | cut -d " " -f2) > versions.txt
     """                

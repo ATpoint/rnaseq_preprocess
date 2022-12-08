@@ -30,8 +30,7 @@ process FastQC {
         fastqc -o ./ -q ${reads[0]}
         fastqc -o ./ -q ${reads[1]}
 
-        echo ${task.process}:${meta.id} > command_lines.txt
-        cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
+        cat .command.sh > command_lines.txt
 
         echo 'FastQC:' \$(fastqc --version | cut -d " " -f2) > versions.txt
         """
@@ -41,8 +40,7 @@ process FastQC {
         """
         fastqc -o ./ -q $reads
 
-        echo ${task.process}:${meta.id} > command_lines.txt
-        cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
+        cat .command.sh > command_lines.txt
 
         echo 'FastQC:' \$(fastqc --version | cut -d " " -f2) > versions.txt
         

@@ -1,7 +1,6 @@
 process CommandLines {
 
     cpus 1
-    memory 500.MB
 
     errorStrategy 'finish'
 
@@ -19,14 +18,9 @@ process CommandLines {
         
     script:
     """
-    find . -type d \
-    | while read p; do
-        echo \$(head -n 1 \${p}/command_lines.txt) >> commands.txt
-        paste <(echo '') <(cat \${p}/command_lines.txt | sed '1d') >> commands.txt
-      done
-      
-    Rscript --vanilla $baseDir/bin/sort_commands.R commands.txt       
+    cat $commands | awk NF | grep -vE '.command.sh|> versions.txt|^#!' | sort --ignore-case -u | sed 's/  */ /g' > command_lines.txt
     cat $versions | awk NF | sort --ignore-case -u > software_versions.txt
     """
 
-}
+} 
+

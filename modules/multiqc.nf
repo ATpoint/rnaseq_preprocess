@@ -21,11 +21,6 @@ process MultiQC {
     script: 
     """
     multiqc .
-
-    echo ${task.process}: > command_lines.txt
-    cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
-
-    echo 'MultiQC:' \$(multiqc --version 2>&1 | cut -d " " -f3)  > versions.txt
     """     
 
 }
