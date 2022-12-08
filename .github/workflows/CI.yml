@@ -8,10 +8,7 @@ on:
       - '*.md'
       - '*.ignore'
       - LICENSE
-  pull_request:
-    branches:
-      - '**'
-
+  
   workflow_dispatch:
 
 jobs:
@@ -46,13 +43,13 @@ jobs:
         run: |
           git config --global user.name 'atpoint'
           git config --global user.email 'atpoint@users.noreply.github.com'
-          mkdir -p misc && cp rnaseq_preprocess_results/pipeline_info/software_versions.txt misc/software_versions.txt
+          mkdir -p misc && cp rnaseq_preprocess_results/pipeline_info/*.txt misc/
           # Check if there is anything to commit
-          git_check=$(git diff --exit-code misc/software_versions.txt > /dev/null && echo "NOTHING" || echo "LETSGO")
+          git_check=$(git diff --exit-code misc/*.txt > /dev/null && echo "NOTHING" || echo "LETSGO")
           if [[ $git_check == "LETSGO" ]]; then
-            git add misc/software_versions.txt
+            git add misc/*.txt
             git commit -am "current software versions"
-            git push          
+            git push         
           fi      
 
       # Test via podman

@@ -21,7 +21,8 @@ process Tx2Gene {
     """
     Rscript --vanilla ${baseDir}/bin/tx2gene.R $gtf tx2gene.txt $params.transcript_id $params.transcript_name $params.gene_id $params.gene_name $params.gene_type
 
-    cat .command.sh > command_lines.txt
+    echo ${task.process}: > command_lines.txt
+    cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
     
     echo 'R:' \$(R --version | head -n1 | cut -d " " -f3) > versions.txt
     echo 'rtracklayer:' \$(Rscript -e "cat(as.character(packageVersion('rtracklayer')))") >> versions.txt
