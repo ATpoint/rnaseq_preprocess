@@ -39,32 +39,15 @@ jobs:
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --trim_reads --trim_length 50
 
+      # Write software versions and command lines to the misc folder
       - name: Commit software versions
         run: |
           git config --global user.name 'atpoint'
           git config --global user.email 'atpoint@users.noreply.github.com'
           mkdir -p misc && cp rnaseq_preprocess_results/pipeline_info/*.txt misc/
-          # Check if there is anything to commit
-          git_check=$(git diff --exit-code misc/*.txt > /dev/null && echo "NOTHING" || echo "LETSGO")
-          if [[ $git_check == "LETSGO" ]]; then
-            git add misc/*.txt
-            git commit -am "current software versions"
-            git push         
-          fi      
-
-      # Test via podman
-      #- name: TEST-PODMAN
-      #  run: |
-      #    sudo apt-get update \
-      #    && sudo apt-get -y upgrade \
-      #    && sudo apt-get -y install podman \
-      #    && NXF_VER=21.10.6 nextflow run main.nf -profile podman,test_with_existing_idx,test_resources          
-          
-      # Test via singularity    
-      - uses: eWaterCycle/setup-singularity@v7
-        with:
-          singularity-version: 3.8.0
-    
-      - name: TEST-SINGULARITY
-        run: NXF_VER=21.10.6 nextflow run main.nf -profile singularity,test_with_existing_idx,test_resources
+          git add misc/*.txt
+          if (( $(git status -s | grep -c 'misc/') > 0 )); then 
+            git commit -am "update software version and command line reports"
+            git push -f
+          fi
           
