@@ -1,0 +1,30 @@
+RNASEQ_PREPROCESS:CatFastq:sample1	
+	cat 1/sample1_1.fastq.gz 2/sample1_1.fastq.gz > sample1_merged_R1.fq.gz
+	cat 3/sample1_2.fastq.gz 4/sample1_2.fastq.gz > sample1_merged_R2.fq.gz
+RNASEQ_PREPROCESS:CatFastq:sample3	
+	cat 1/sample3.fastq.gz 2/sample3.fastq.gz > sample3_merged_R1.fq.gz
+RNASEQ_PREPROCESS:FASTQC:FastQC:sample1	
+	fastqc -o ./ -q 1/sample1_merged_R1.fq.gz
+	fastqc -o ./ -q 2/sample1_merged_R2.fq.gz
+RNASEQ_PREPROCESS:FASTQC:FastQC:sample2	
+	fastqc -o ./ -q 1/sample2_1.fastq.gz
+	fastqc -o ./ -q 2/sample2_2.fastq.gz
+RNASEQ_PREPROCESS:FASTQC:FastQC:sample3	
+	fastqc -o ./ -q 1/sample3_merged_R1.fq.gz
+RNASEQ_PREPROCESS:QUANT:Quant:sample1	
+	salmon quant --no-version-check --validateMappings -i idx -o sample1 -l A -p 1 -1 sample1_R1_trimmed.fq.gz -2 sample1_R2_trimmed.fq.gz
+RNASEQ_PREPROCESS:QUANT:Quant:sample2	
+	salmon quant --no-version-check --validateMappings -i idx -o sample2 -l A -p 1 -1 sample2_R1_trimmed.fq.gz -2 sample2_R2_trimmed.fq.gz
+RNASEQ_PREPROCESS:QUANT:Quant:sample3	
+	salmon quant --no-version-check --validateMappings -i idx -o sample3 -l A -p 1 -r sample3_R1_trimmed.fq.gz
+RNASEQ_PREPROCESS:TRIM:Trim:sample1	
+	seqtk trimfq -L 50 1/sample1_merged_R1.fq.gz | gzip --fast > sample1_R1_trimmed.fq.gz
+	seqtk trimfq -L 50 2/sample1_merged_R2.fq.gz | gzip --fast > sample1_R2_trimmed.fq.gz
+RNASEQ_PREPROCESS:TRIM:Trim:sample2	
+	seqtk trimfq -L 50 1/sample2_1.fastq.gz | gzip --fast > sample2_R1_trimmed.fq.gz
+	seqtk trimfq -L 50 2/sample2_2.fastq.gz | gzip --fast > sample2_R2_trimmed.fq.gz
+RNASEQ_PREPROCESS:TRIM:Trim:sample3	
+	seqtk trimfq -L 50 1/sample3_merged_R1.fq.gz | gzip --fast > sample3_R1_trimmed.fq.gz
+RNASEQ_PREPROCESS:TXIMPORT:Tximport:	
+	Rscript --vanilla /home/runner/work/rnaseq_preprocess/rnaseq_preprocess/bin/tximport.R sample2,sample3,sample1 tx2gene.txt
+	gzip -c tx2gene.txt > tx2gene.txt.gz
