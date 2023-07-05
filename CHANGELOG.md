@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.5.1
+- update container
+
 ## v2.5
 - adapted the idea of the meta-map from nf-core for module inputs
 - merge samples with multiple fastq files prior to fastqc/quantification
