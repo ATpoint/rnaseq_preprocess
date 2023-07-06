@@ -26,5 +26,5 @@ RNASEQ_PREPROCESS:TRIM:Trim:sample2
 RNASEQ_PREPROCESS:TRIM:Trim:sample3	
 	seqtk trimfq -L 50 1/sample3_merged_R1.fq.gz | gzip --fast > sample3_R1_trimmed.fq.gz
 RNASEQ_PREPROCESS:TXIMPORT:Tximport:	
-	Rscript --vanilla /home/runner/work/rnaseq_preprocess/rnaseq_preprocess/bin/tximport.R sample2,sample3,sample1 tx2gene.txt
+	Rscript --vanilla /home/runner/work/rnaseq_preprocess/rnaseq_preprocess/bin/tximport.R sample2,sample1,sample3 tx2gene.txt
 	gzip -c tx2gene.txt > tx2gene.txt.gz
