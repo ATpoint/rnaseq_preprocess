@@ -9,7 +9,7 @@ quants   <- args[1]
 quants   <- strsplit(quants, split=",")[[1]]
 bname    <- quants
 tx2gene  <- read.delim(args[2], header=TRUE)
-q        <- paste0(quants, "/quant.sf")
+q        <- paste0(quants, "/quant.sf.gz")
 names(q) <- bname
 q        <- q[order(names(q))]
 
