@@ -13,10 +13,13 @@ RNASEQ_PREPROCESS:FASTQC:FastQC:sample3
 	fastqc -o ./ -q 1/sample3_merged_R1.fq.gz
 RNASEQ_PREPROCESS:QUANT:Quant:sample1	
 	salmon quant --no-version-check --validateMappings -i idx -o sample1 -l A -p 1 -1 sample1_R1_trimmed.fq.gz -2 sample1_R2_trimmed.fq.gz
+	gzip --best sample1/quant.sf
 RNASEQ_PREPROCESS:QUANT:Quant:sample2	
 	salmon quant --no-version-check --validateMappings -i idx -o sample2 -l A -p 1 -1 sample2_R1_trimmed.fq.gz -2 sample2_R2_trimmed.fq.gz
+	gzip --best sample2/quant.sf
 RNASEQ_PREPROCESS:QUANT:Quant:sample3	
 	salmon quant --no-version-check --validateMappings -i idx -o sample3 -l A -p 1 -r sample3_R1_trimmed.fq.gz
+	gzip --best sample3/quant.sf
 RNASEQ_PREPROCESS:TRIM:Trim:sample1	
 	seqtk trimfq -L 50 1/sample1_merged_R1.fq.gz | gzip --fast > sample1_R1_trimmed.fq.gz
 	seqtk trimfq -L 50 2/sample1_merged_R2.fq.gz | gzip --fast > sample1_R2_trimmed.fq.gz
@@ -26,5 +29,5 @@ RNASEQ_PREPROCESS:TRIM:Trim:sample2
 RNASEQ_PREPROCESS:TRIM:Trim:sample3	
 	seqtk trimfq -L 50 1/sample3_merged_R1.fq.gz | gzip --fast > sample3_R1_trimmed.fq.gz
 RNASEQ_PREPROCESS:TXIMPORT:Tximport:	
-	Rscript --vanilla /home/runner/work/rnaseq_preprocess/rnaseq_preprocess/bin/tximport.R sample2,sample1,sample3 tx2gene.txt
+	Rscript --vanilla /home/runner/work/rnaseq_preprocess/rnaseq_preprocess/bin/tximport.R sample2,sample3,sample1 tx2gene.txt
 	gzip -c tx2gene.txt > tx2gene.txt.gz

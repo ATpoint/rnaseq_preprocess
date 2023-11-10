@@ -32,6 +32,7 @@ process Quant {
 
     """
     salmon quant --no-version-check --validateMappings -i $idx -o ${meta.id} -l $lib_type -p $task.cpus $additional $use_reads
+    gzip --best ${meta.id}/quant.sf
 
     echo ${task.process}:${meta.id} > command_lines.txt
     cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
