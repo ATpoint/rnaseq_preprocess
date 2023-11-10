@@ -6,6 +6,7 @@ that can be solved by using either of the `ignoreTxVersion` or `ignoreAfterBar` 
 and if so, do it automatically. This is relevant for Ensembl-based annotations where the GTF file often does not contain
 transcript versions (like ENSTXXXX.[digit]) but the transcriptome fasta headers do. This then creates a mismatch between
 tx2gene and the quant.sf transcript names which is annoying. This check will compensate for it.
+- `quant.sf` files from `salmon` are now gzipped
 
 ## v2.5.1
 - update container
