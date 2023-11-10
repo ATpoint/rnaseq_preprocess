@@ -22,7 +22,7 @@
 
 - [rtracklayer](https://bioconductor.org/packages/release/bioc/html/rtracklayer.html)
 
-- [tximport]([https://pubmed.ncbi.nlm.nih.gov/32097405/](https://f1000research.com/articles/4-1521/))
+- [tximport](https://f1000research.com/articles/4-1521/)
 
 ## Software packaging/container frameworks
 
