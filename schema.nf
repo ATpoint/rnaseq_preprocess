@@ -17,23 +17,6 @@ schema.publishmode    = [value: 'copy', type: 'string', mandatory: true, allowed
 schema.outdir         = [value: "$launchDir/rnaseq_preprocess_results/", type: 'string', mandatory: true]
 schema.pipe_dir        = [value: "${schema.outdir['value']}/pipeline_info/", type: 'string']
 
-// indexing:
-schema.title2          = [title: 'INDEXING OPTIONS']
-schema.idx             = [value: '', type: 'string']
-schema.tx2gene         = [value: '', type: 'string']
-schema.txtome          = [value: '', type: 'string', pattern: /.*\.gz$/]
-schema.genome          = [value: '', type: 'string', pattern: /.*\.gz$/]
-schema.gtf             = [value: '', type: 'string', pattern: /.*\.gz$/]
-schema.transcript_id   = [value: 'transcript_id', type: 'string']
-schema.transcript_name = [value: 'transcript_name', type: 'string']
-schema.gene_id         = [value: 'gene_id', type: 'string']
-schema.gene_name       = [value: 'gene_name', type: 'string']
-schema.gene_type       = [value: 'gene_type', type: 'string']
-schema.idx_name        = [value: "idx", type: 'string']
-schema.idx_dir         = [value: "${schema.outdir['value']}/salmon_idx/", type: 'string']
-schema.idx_additional  = [value: '--gencode', type: 'string']
-schema.only_idx        = [value: false, type: 'logical']
-
 // combining technical replicates into a single fastq and trimming
 schema.title3            = [title: 'MERGE/FASTQ OPTIONS']
 schema.merge_dir         = [value: "${schema.outdir['value']}/fastq_merged/", type: 'string']
@@ -55,8 +38,10 @@ schema.only_fastqc        = [value: false, type: 'logical']
 // samplesheet and quantification
 schema.title5             = [title: 'QUANTIFICATION/TXIMPORT OPTIONS']
 schema.samplesheet        = [value: '', type: 'string', pattern: /.*\.csv$/]
+schema.idx                = [value: '', type: 'string', mandatory: true]
 schema.quant_dir          = [value: "${schema.outdir['value']}/salmon_quant/", type: 'string']
 schema.quant_additional   = [value: '--gcBias --seqBias --posBias', type: 'string']
+schema.tx2gene            = [value: '', type: 'string']
 schema.tximport_dir       = [value: "${schema.outdir['value']}/tximport/", type: 'string']
 schema.skip_tximport      = [value: false, type: 'logical']
 

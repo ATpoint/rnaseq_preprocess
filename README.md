@@ -21,28 +21,13 @@ See the [misc](misc/) folder which contains the software versions used in the pi
 
 **Indexing**
 
-The indexing step must be run first and separately using the `--only_idx` flag. For this we need a reference transcriptome (gzipped), a reference genome as decoy (gzipped) and a GTF annotation file (gzipped).
+The pipeline does not cover the indexing step as there are different sorts of salmon index methods available,
+for example indexing only the transcriptome without any genome decoys, partial genome decoys and full genome decoys.
 
-`--only_idx`: trigger the indexing process  
-`--idx_name`: name of the produced index, default `idx`  
-`--idx_dir`: name of the directory inside `rnaseq_preprocess_results/` storing the index, default `salmon_idx`  
-`--idx_additional`: additional arguments to `salmon index` beyond the defaults which are `--no-version-check -t -d -i -p --gencode`  
-`--txtome`: path to the gzipped transcriptome fasta  
-`--genome`: path to the gzipped genome fasta  
-`--gtf`: path to the gzipped GTF file  
-`--transcript_id`: name of GTF column storing transcript ID, default `transcript_id`  
-`--transcript_name`: name of GTF column storing transcript name, default `transcript_name`  
-`--gene_id`: name of GTF column storing gene ID, default `gene_id`  
-`--gene_name`: name of GTF column storing gene name, default `gene_name`  
-`--gene_type`: name of GTF column storing gene biotype, default `gene_type`  
+Please produce an index up front and then provide the output folder to the `--idx` option.
 
-For the indexing process, 30GB of RAM and 6 CPUs are required/hardcoded. On our HPC we use:  
-
-```bash
-NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main  -profile singularity,slurm --only_idx \
-    --genome path/to/genome.fa.gz --txtome path/to/txtome.fa.gz --gtf path/to/foo.gtf.gz \
-    -with-report indexing_report.html -with-trace indexing_report.trace -bg > indexing_report.log
-```    
+The pipeline has a hardcoded 8GB memory limit for the quantification step which should be sufficient for transcriptome-only and partial genome decoy indices.
+For full genome decoy please modify the `withLabel:process_quant` memory definition in `nextflow.config` to something like 20GB depending on organism.
 
 **Quantification/tximport**
 
@@ -58,13 +43,13 @@ Transcript abundance estimates from `salmon` are then summarized to the gene lev
 Other options:
 
 `--idx`: path to the salmon index folder  
-`--tx2gene`: path to the tx2gene map matching transcripts to genes  
+`--tx2gene`: path to the tx2gene map matching transcripts to genes
 `--samplesheet`: path to the input samplesheet  
 `--trim_reads`: logical, whether to trim reads to a fixed length  
 `--trim_length`: numeric, length for trimming  
 `--quant_additional`: additional options to `salmon quant` beyond `--gcBias --seqBias --posBias`  
 
-We hardcoded 30GB RAM and 6 CPUs for the quantification. On our HPC we use:
+We hardcoded 8GB RAM and 6 CPUs for the quantification. On our HPC we use:
 
 ```bash
 NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main -profile singularity,slurm \
