@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.6.0
+- remove indexing from pipeline, expect pre-made index.
+- assume now that partial decoy index or txtome index is used, hence lower memory for quant to 8GB
+
 ## v2.5.2
 - check in `tximport` process whether there is a mismatch between tx2gene file and quant.sf identifiers
 that can be solved by using either of the `ignoreTxVersion` or `ignoreAfterBar` arguments of `tximport()`,
