@@ -14,6 +14,8 @@ for(u in unique_sample){
   
   # Libtype for same sample must be identical
   sx <- ss[ss$sample==u,]
+  sx[is.na(sx)] <- "" # corner case when all r2's are empty they turn NA
+  
   sx_libtype <- unique(sx$libtype)
   if(length(sx_libtype)>1)
     l_error[paste0("libtype_", u)] <- paste("Sample:", u, "has multiple different libtypes")
