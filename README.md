@@ -31,8 +31,6 @@ NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main  -profile singula
     -with-report indexing_report.html -with-trace indexing_report.trace -bg > indexing_report.log
 ```    
 
-Default settings assume GNECODE files.
-
 The indexing step must be run first and separately using the `--only_idx` flag. 
 
 `--only_idx`: trigger the indexing process  
