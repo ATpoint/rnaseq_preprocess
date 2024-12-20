@@ -50,10 +50,14 @@ evaluate(new File("${baseDir}/functions/validate_schema_params.nf"))
 // Load the modules and pass params
 //------------------------------------------------------------------------
 
+include{ Idx } from './modules/index' addParams(outdir: params.idx_dir, additional: params.idx_additional)
+
 include{ ValidateSamplesheet } from './modules/validatesamplesheet'
 
 include{ CatFastq } from './modules/cat_fastq' addParams(outdir: params.merge_dir, keep: params.merge_keep)
-                                                            
+
+include { Tx2Gene } from './modules/tx2gene' addParams(outdir: params.idx_dir)
+                                                             
 include{ FastQC } from './modules/fastqc' addParams(outdir: params.fastqc_dir)
 
 include{ Trim } from './modules/trim' addParams(outdir: params.trim_dir, keep: params.trim_keep)
@@ -77,6 +81,23 @@ def ConvertBool2String(indata='') {
     } else {
         return indata
     }
+}
+
+workflow IDX {
+
+    main:
+        Idx(params.txtome, params.genome, params.idx_name)
+
+        Tx2Gene(params.gtf)
+
+        this_idx     = Idx.out.idx 
+        this_tx2gene = Tx2Gene.out.tx2gene
+            
+    emit:
+        idx      = this_idx
+        tx2gene  = this_tx2gene    
+        versions = Idx.out.versions.concat(Tx2Gene.out.versions)
+
 }
 
 workflow VALIDATESSAMPLESHEET {
@@ -230,124 +251,145 @@ workflow MULTIQC {
 
 workflow RNASEQ_PREPROCESS {
 
-    idx_versions = Channel.empty()
-    use_idx = params.idx
-    use_tx2gene = params.tx2gene
-
-    // ----------------------------------------------------------------------------------------
-    // Validate the provided samplesheet and merge fastq if necessary
-    // ----------------------------------------------------------------------------------------
-
-    sx = file(params.samplesheet, checkIfExists: true)
+    if(params.only_idx==true) {
         
-    VALIDATESSAMPLESHEET(params.samplesheet)
+        IDX()
+        use_idx     = IDX.out.idx
+        use_tx2gene = IDX.out.tx2gene
+        idx_versions = IDX.out.versions
 
-    // Samples with > 1 fastq per read
-    VALIDATESSAMPLESHEET.out.samplesheet
-    .map {meta, reads, counter -> 
-    
-        if(counter>1) [meta, reads]
-
-    }.set { ch_needMerge }
-
-    CatFastq(ch_needMerge)
-    ch_merged = CatFastq.out.fastq_tuple
-    cat_versions = CatFastq.out.versions  
-
-    // Samples with 1 fastq per read
-    VALIDATESSAMPLESHEET.out.samplesheet
-    .map {meta, reads, counter -> 
-        
-        if(counter==1) [meta, reads]
-
-    }.set { ch_noMerge }
-
-    // This channel is now [meta, reads] and can go in all downstream processes that require fastq
-    ch_fastq = ch_noMerge.concat(ch_merged)
-
-    // ----------------------------------------------------------------------------------------
-    // Fastqc
-    // ----------------------------------------------------------------------------------------
-
-    if(!params.skip_fastqc){
-
-        FASTQC(ch_fastq)
-        fastqc_for_multiqc = FASTQC.out.fastqc
-        fastqc_versions = FASTQC.out.versions
-
-    } else {
-
-        fastqc_for_multiqc = Channel.empty()
+        cat_versions = Channel.empty()
         fastqc_versions = Channel.empty()
-
-    }
-
-    // ----------------------------------------------------------------------------------------
-    // Trim
-    // ----------------------------------------------------------------------------------------
-    if(params.trim_reads & !params.only_fastqc){
-
-        TRIM(ch_fastq)
-        reads_for_quant = TRIM.out.fastq_tuple
-        trim_versions = TRIM.out.versions
+        trim_versions = Channel.empty()
+        quant_versions = Channel.empty()
+        tximport_versions = Channel.empty()
 
     } else {
 
-        reads_for_quant = ch_fastq
-        trim_versions = Channel.empty()
+        idx_versions = Channel.empty()
+        use_idx = params.idx
+        use_tx2gene = params.tx2gene
 
-    }
+        // ----------------------------------------------------------------------------------------
+        // Validate the provided samplesheet and merge fastq if necessary
+        // ----------------------------------------------------------------------------------------
 
-    // ----------------------------------------------------------------------------------------
-    // Quantification & Tximport
-    // ----------------------------------------------------------------------------------------
-    if(!params.only_fastqc) {
+        sx = file(params.samplesheet, checkIfExists: true)
+        
+        VALIDATESSAMPLESHEET(params.samplesheet)
+
+        // Samples with > 1 fastq per read
+        VALIDATESSAMPLESHEET.out.samplesheet
+        .map {meta, reads, counter -> 
+        
+            if(counter>1) [meta, reads]
+
+        }.set { ch_needMerge }
+
+        CatFastq(ch_needMerge)
+        ch_merged = CatFastq.out.fastq_tuple
+        cat_versions = CatFastq.out.versions  
+
+        // Samples with 1 fastq per read
+        VALIDATESSAMPLESHEET.out.samplesheet
+        .map {meta, reads, counter -> 
             
-        QUANT(reads_for_quant, use_idx)
-        quant_for_multiqc = QUANT.out.quant
-        quant_versions = QUANT.out.versions
+            if(counter==1) [meta, reads]
 
-        if(!params.skip_tximport){
+        }.set { ch_noMerge }
 
-            TXIMPORT(QUANT.out.quant.collect(), use_tx2gene)
-            tximport_versions = TXIMPORT.out.versions
+        // This channel is now [meta, reads] and can go in all downstream processes that require fastq
+        ch_fastq = ch_noMerge.concat(ch_merged)
+
+        // ----------------------------------------------------------------------------------------
+        // Fastqc
+        // ----------------------------------------------------------------------------------------
+
+        if(!params.skip_fastqc){
+
+            FASTQC(ch_fastq)
+            fastqc_for_multiqc = FASTQC.out.fastqc
+            fastqc_versions = FASTQC.out.versions
 
         } else {
 
+            fastqc_for_multiqc = Channel.empty()
+            fastqc_versions = Channel.empty()
+
+        }
+
+        // ----------------------------------------------------------------------------------------
+        // Trim
+        // ----------------------------------------------------------------------------------------
+        if(params.trim_reads & !params.only_fastqc){
+
+            TRIM(ch_fastq)
+            reads_for_quant = TRIM.out.fastq_tuple
+            trim_versions = TRIM.out.versions
+
+        } else {
+
+            reads_for_quant = ch_fastq
+            trim_versions = Channel.empty()
+
+        }
+
+        // ----------------------------------------------------------------------------------------
+        // Quantification & Tximport
+        // ----------------------------------------------------------------------------------------
+        if(!params.only_fastqc) {
+            
+            QUANT(reads_for_quant, use_idx)
+            quant_for_multiqc = QUANT.out.quant
+            quant_versions = QUANT.out.versions
+
+            if(!params.skip_tximport){
+
+                TXIMPORT(QUANT.out.quant.collect(), use_tx2gene)
+                tximport_versions = TXIMPORT.out.versions
+
+            } else {
+
+                tximport_versions = Channel.empty()
+
+            }
+
+        } else {
+
+            quant_for_multiqc = Channel.empty()
+            quant_versions = Channel.empty()
             tximport_versions = Channel.empty()
 
         }
 
-    } else {
+        // ----------------------------------------------------------------------------------------
+        // MultiQC
+        // ----------------------------------------------------------------------------------------
 
-        quant_for_multiqc = Channel.empty()
-        quant_versions = Channel.empty()
-        tximport_versions = Channel.empty()
-
+        if(!params.skip_multiqc) { MULTIQC(fastqc_for_multiqc.concat(quant_for_multiqc).collect()) }
+       
     }
-
-    // ----------------------------------------------------------------------------------------
-    // MultiQC
-    // ----------------------------------------------------------------------------------------
-
-    if(!params.skip_multiqc) { MULTIQC(fastqc_for_multiqc.concat(quant_for_multiqc).collect()) }
 
     // ----------------------------------------------------------------------------------------
     // Command lines and software versions
     // ----------------------------------------------------------------------------------------
-    x_commands = cat_versions.concat(trim_versions, fastqc_versions, quant_versions, tximport_versions)
-                .map {it [1]}.flatten().collect()
+    x_commands = idx_versions.concat(cat_versions, trim_versions, fastqc_versions, quant_versions, tximport_versions)
+                 .map {it [1]}.flatten().collect()
 
-    x_versions = tximport_versions.concat(cat_versions.first(), fastqc_versions.first(), trim_versions.first(), quant_versions.first())
-                 .map {it [0]}
-                 .flatten()
-                 .collect()
+    x_versions = idx_versions
+                 .concat(cat_versions.first(), 
+                         fastqc_versions.first(), 
+                         trim_versions.first(),
+                         quant_versions.first(),
+                         tximport_versions)
+                .map {it [0]}
+                .flatten()
+                .collect()
 
     CommandLines(x_commands, x_versions)
-       
+
 }
 
-// RUN EVERYTHING
 workflow { RNASEQ_PREPROCESS() }
 
 def od = params.outdir

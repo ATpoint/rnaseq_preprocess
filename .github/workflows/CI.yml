@@ -19,7 +19,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: INSTALL-NEXTFLOW
         run: |
@@ -29,6 +29,7 @@ jobs:
       # Test via docker
       - name: TEST-DOCKER_ALL
         run: |
+          NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_new_idx,test_resources --only_idx
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --only_fastqc
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --skip_fastqc
           NXF_VER=21.10.6 nextflow run main.nf -profile docker,test_with_existing_idx,test_resources --skip_tximport
