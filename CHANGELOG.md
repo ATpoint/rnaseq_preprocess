@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.6.1
+- go back the the settings from v2.5.2 so expect gentrome index
+
 ## v2.6.0
 - remove indexing from pipeline, expect pre-made index.
 - assume now that partial decoy index or txtome index is used, hence lower memory for quant to 8GB
