@@ -7,21 +7,33 @@
 
 ## Introduction
 
-**rnaseq_preprocess** is a Nextflow pipeline for RNA-seq quantification with `salmon`. The processing steps are `fastqc` first, then quantification with `salmon`, aggregation to gene level with `tximport` and a small summary report with `MultiQC`. Multiple fastq files per sample are supported. These technical replicates will be merged prior to quantification. Optional trimming to a fixed read length is possible. The pipeline is containerized via Docker and Singularity. Outputs can be found in `rnaseq_preprocess_results/` including command lines and software versions. The expected Nextflow version is 21.10.6.
-
-Run the test profile to see which output is being produced. Downloading the Docker image may take a minute or two:
+**rnaseq_preprocess** is a Nextflow pipeline for RNA-seq quantification with `salmon`. The full processing steps are `fastqc` first, optional trimming with `seqtk`, then quantification with `salmon`, aggregation to gene level with `tximport` and a small summary report with `MultiQC`. Multiple fastq files per sample are supported. These technical replicates will be merged prior to quantification. The input are fastq files,
+provided via a samplesheet:
 
 ```bash
-NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main -profile docker,test_with_existing_idx,test_resources
+sample,r1,r2,libtype
+sampleA,/path/to/r1.fq.gz,/path/to/r2.fq.gz,A
+(...and...so...on)
 ```
 
-See the [misc](misc/) folder which contains the software versions used in the pipeline and the exact command lines. In case of running the pipeline this output will be in the `pipeline_info` folder of the output directory.
+Sample is a user-chosen name for this set of fastq files. Fastq files with the same sample entry are concatenated before quantification.
+Libtype is the library type argument from salmon. "A" means automatic detection.
 
 ## Details
 
 **Indexing**
 
-The indexing step must be run first and separately using the `--only_idx` flag. For this we need a reference transcriptome (gzipped), a reference genome as decoy (gzipped) and a GTF annotation file (gzipped).
+De novo indexing is supported and assumes that a gentrome (genome-decoyed transcriptome) is to be created. For this at minimum we need a genome and transcriptome fasta file and a GTF:
+
+```bash
+NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main  -profile singularity,slurm --only_idx \
+    --genome path/to/genome.fa.gz --txtome path/to/txtome.fa.gz --gtf path/to/foo.gtf.gz \
+    -with-report indexing_report.html -with-trace indexing_report.trace -bg > indexing_report.log
+```    
+
+Default settings assume GNECODE files.
+
+The indexing step must be run first and separately using the `--only_idx` flag. 
 
 `--only_idx`: trigger the indexing process  
 `--idx_name`: name of the produced index, default `idx`  
@@ -36,28 +48,19 @@ The indexing step must be run first and separately using the `--only_idx` flag. 
 `--gene_name`: name of GTF column storing gene name, default `gene_name`  
 `--gene_type`: name of GTF column storing gene biotype, default `gene_type`  
 
-For the indexing process, 30GB of RAM and 6 CPUs are required/hardcoded. On our HPC we use:  
-
-```bash
-NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main  -profile singularity,slurm --only_idx \
-    --genome path/to/genome.fa.gz --txtome path/to/txtome.fa.gz --gtf path/to/foo.gtf.gz \
-    -with-report indexing_report.html -with-trace indexing_report.trace -bg > indexing_report.log
-```    
+For the indexing process, 30GB of RAM and 6 CPUs are required/hardcoded.
 
 **Quantification/tximport**
 
-The pipeline runs via a [samplesheet](./test/samplesheet.csv) which is a CSV file with the columns:
-`sample,r1,r2,libtype`. The first column is the name of the sample, followed by the paths to the R1 and
-R2 files and the salmon [libtype](https://salmon.readthedocs.io/en/latest/library_type.html). If R2 is left blank
-then single-end mode is triggered for that sample. Multiple fastq files (lane/technical replicates) are supported.
-These must have the same sample column and will then be merged prior to quantification. Optionally, a `seqtk` module can
-trim reads to a fixed read length, triggered by `--trim_reads` with a default of 75bp, controlled by `--trim_length`. 
-The quantification then runs with the salmon options `--gcBias --seqBias --posBias` (for single-end without `--gcBias`). 
-Transcript abundance estimates from `salmon` are then summarized to the gene level using [tximport](https://bioconductor.org/packages/devel/bioc/vignettes/tximport/inst/doc/tximport.html#Salmon) with its `lengthScaledTPM` option. That means returned gene-level counts are already corrected for average transcript length and can go into any downstream DEG analysis, for example with `limma`. Both a matrix of counts and effective gene lengths is returned.
+Quantification command line:
 
-Other options:
+```bash
+NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main -profile singularity,slurm \
+    --idx path/to/idx/folder/ --tx2gene path/to/tx2gene.txt --samplesheet path/to/samplesheet.csv \
+    -with-report quant_report.html -with-trace quant_report.trace -bg > quant_report.log
+```
 
-`--idx`: path to the salmon index folder  
+`--idx`: path to the salmon index folder 
 `--tx2gene`: path to the tx2gene map matching transcripts to genes  
 `--samplesheet`: path to the input samplesheet  
 `--trim_reads`: logical, whether to trim reads to a fixed length  
@@ -66,13 +69,7 @@ Other options:
 
 We hardcoded 30GB RAM and 6 CPUs for the quantification. On our HPC we use:
 
-```bash
-NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main -profile singularity,slurm \
-    --idx path/to/idx --tx2gene path/to/tx2gene.txt --samplesheet path/to/samplesheet.csv \
-    -with-report quant_report.html -with-trace quant_report.trace -bg > quant_report.log
-```
-
-**Other options**
+**Other available options**
 
 `--merge_keep`: logical, whether to keep the merged fastq files  
 `--merge_dir`: folder inside the output directory to store the merged fastq files  
@@ -84,3 +81,5 @@ NXF_VER=21.10.6 nextflow run atpoint/rnaseq_preprocess -r main -profile singular
 `--skip_tximport`: logical, whether to skip the `tximport` process downstream of the quantification  
 `--fastqc_dir`: folder inside the output directory to store the fastqc results  
 `--multiqc_dir`: folder inside the output directory to store the multiqc results 
+
+Output is a folder "rnaseq_preprocess_results with self-explainatory content. See the [misc](misc/) folder which contains the software versions used in the pipeline and the exact command lines. In case of running the pipeline this output will be in the `pipeline_info` folder of the output directory.
