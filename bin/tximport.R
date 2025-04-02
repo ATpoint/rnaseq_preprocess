@@ -55,3 +55,10 @@ tgz <- gzfile("lengths.txt.gz", "w")
 write.table(x=data.frame(gene=rownames(txi$length), txi$counts), 
             file=tgz, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
 close(tgz)
+
+tgz <- gzfile("tx2gene.txt.gz", "w")
+write.table(x=tx2gene, 
+            file=tgz, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
+close(tgz)
+
+
