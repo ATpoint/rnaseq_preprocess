@@ -17,7 +17,6 @@ process Tximport {
     output:
     path("counts.txt.gz")
     path("lengths.txt.gz")
-    path("tx2gene.txt.gz")
     tuple path("versions.txt"), path("command_lines.txt"), emit: versions
                 
     script: 
