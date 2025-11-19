@@ -45,9 +45,11 @@ txi <- tximport::tximport(files=q, tx2gene=tx2gene,
                           ignoreTxVersion=ignoreTxVersion, 
                           ignoreAfterBar=ignoreAfterBar)
 
+#/                           
+
 #/ save counts with length being the median of average tx length:
 tgz <- gzfile("counts.txt.gz", "w")
-write.table(x=data.frame(gene=rownames(txi$counts), txi$counts), 
+write.table(x=data.frame(gene=rownames(txi$counts), txi$counts, check.names = FALSE), 
             file=tgz, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
 close(tgz)
 
@@ -55,10 +57,3 @@ tgz <- gzfile("lengths.txt.gz", "w")
 write.table(x=data.frame(gene=rownames(txi$length), txi$counts), 
             file=tgz, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
 close(tgz)
-
-tgz <- gzfile("tx2gene.txt.gz", "w")
-write.table(x=tx2gene, 
-            file=tgz, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
-close(tgz)
-
-

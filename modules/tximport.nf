@@ -17,19 +17,12 @@ process Tximport {
     output:
     path("counts.txt.gz")
     path("lengths.txt.gz")
-    path("tx2gene.txt.gz")
     tuple path("versions.txt"), path("command_lines.txt"), emit: versions
                 
     script: 
     def q = quants.join(',').toString()
     """
     Rscript --vanilla $baseDir/bin/tximport.R $q $tx2gene
-
-    #if file "$tx2gene" | grep -q 'gzip compressed'; then
-    #  cat $tx2gene > tx2gene.txt.gz
-    #else
-    #  cat $tx2gene | gzip --best > tx2gene.txt.gz
-    #fi
 
     echo ${task.process}: > command_lines.txt
     cat .command.sh | grep -vE '^#!/bin|versions.txt\$|command_lines.txt\$|cat \\.command.sh' | sed 's/  */ /g' | awk NF >> command_lines.txt
