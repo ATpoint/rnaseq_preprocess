@@ -10,5 +10,5 @@ dependencies:
   - fastqc
   - multiqc
   - r-jsonlite
-  - salmon=1.10.2
+  - salmon=1.10.3
   - seqtk
