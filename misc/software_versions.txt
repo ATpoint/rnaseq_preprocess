@@ -1,6 +1,6 @@
 cat: 8.30
 FastQC: v0.12.1
-R: 4.2.3
-salmon: 1.10.2
-seqtk: 1.4-r122
-tximport: 1.26.0
+R: 4.4.2
+salmon: 1.10.3
+seqtk: 1.5-r133
+tximport: 1.34.0
